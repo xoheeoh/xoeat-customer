@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Xoeat",
+    "slug": "xoeat-customer",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "xoeat",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": { "bundleIdentifier": "app.xoeat.customer", "supportsTablet": false },
+    "android": {
+      "package": "app.xoeat.customer",
+      "adaptiveIcon": { "backgroundColor": "#F0501E", "foregroundImage": "./assets/images/android-icon-foreground.png" },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "name": "Xoeat | 오늘 뭐 먹지, 한 번에 주문.",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font",
+      ["expo-splash-screen", { "backgroundColor": "#F0501E", "image": "./assets/images/splash-icon.png", "imageWidth": 96 }]
+    ]
+  }
+}
