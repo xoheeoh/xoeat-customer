@@ -11,7 +11,7 @@
     "ios": { "bundleIdentifier": "app.xoeat.customer", "supportsTablet": false },
     "android": {
       "package": "app.xoeat.customer",
-      "adaptiveIcon": { "backgroundColor": "#F0501E", "foregroundImage": "./assets/images/android-icon-foreground.png" },
+      "adaptiveIcon": { "backgroundColor": "#FFFFFF", "foregroundImage": "./assets/images/android-icon-foreground.png" },
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -23,7 +23,7 @@
     "plugins": [
       "expo-secure-store",
       "expo-font",
-      ["expo-splash-screen", { "backgroundColor": "#F0501E", "image": "./assets/images/splash-icon.png", "imageWidth": 96 }]
+      ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 96 }]
     ]
   }
 }
