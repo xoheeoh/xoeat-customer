@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -19,7 +19,12 @@ import { theme } from '@styles';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-/** 홈: 배달 주소 · 검색 · 카테고리 · 가게 목록. 장바구니가 있으면 하단에 바로가기 바 */
+/**
+ * 홈: 배달 주소 · 검색 · 카테고리 · 가게 목록. 장바구니가 있으면 하단에 바로가기 바
+ *
+ * 목록은 SectionList 하나(섹션 1개)로 그린다. 스크롤을 내리면 인사말·검색창(ListHeaderComponent)은 올라가 사라지고,
+ * 카테고리 줄(renderSectionHeader)만 주소줄 아래에 걸려(sticky) 스크롤 중에도 카테고리를 바꿀 수 있다.
+ */
 const HomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { me, favoriteIds, setFavoriteIds } = useSession();
@@ -65,6 +70,20 @@ const HomeScreen = () => {
     setRefreshing(false);
   };
 
+  const sections = useMemo(() => [{ data: filtered }], [filtered]);
+
+  /** 목록 바로 위에 붙는 제목 줄("마포구 전체 · 6곳"). 고정되지 않고 목록과 함께 스크롤된다 */
+  const listHead = (
+    <View style={styles.listHead}>
+      <Typography mode="subtitle1" color="gray900">
+        {category === 'ALL' ? '마포구 전체' : CATEGORIES.find((c) => c.code === category)?.label}
+      </Typography>
+      <Typography mode="caption1" color="gray500">
+        {stores ? `${filtered.length}곳` : ''}
+      </Typography>
+    </View>
+  );
+
   return (
     <ScreenWrapper hasHeader={false} backgroundColor="white" inTab>
       {/* 주소 */}
@@ -76,38 +95,42 @@ const HomeScreen = () => {
         <MaterialCommunityIcons name="chevron-down" size={20} color={theme.colors.gray500} />
       </Pressable>
 
-      <FlatList
-        data={filtered}
+      <SectionList
+        sections={sections}
         keyExtractor={(s) => s.id}
         contentContainerStyle={styles.list}
+        stickySectionHeadersEnabled
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
+        // 스크롤하면 사라지는 부분: 인사말 + 검색창
         ListHeaderComponent={
-          <View style={{ gap: 16 }}>
-            <View style={styles.hero}>
-              <Typography mode="heading2" color="white">
-                오늘 뭐 먹지?{'\n'}
-                <Typography mode="heading2" color="orange100">
-                  {me?.name ? `${me.name}님, ` : ''}간편하게 주문해요
-                </Typography>
+          <View style={styles.hero}>
+            <Typography mode="heading2" color="white">
+              오늘 뭐 먹지?{'\n'}
+              <Typography mode="heading2" color="orange100">
+                {me?.name ? `${me.name}님, ` : ''}간편하게 주문해요
               </Typography>
-              <View style={styles.search}>
-                <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.gray500} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="가게 이름이나 메뉴로 검색"
-                  placeholderTextColor={theme.colors.gray400}
-                  value={query}
-                  onChangeText={setQuery}
-                  returnKeyType="search"
-                />
-                {!!query && (
-                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
-                    <MaterialCommunityIcons name="close-circle" size={18} color={theme.colors.gray400} />
-                  </Pressable>
-                )}
-              </View>
+            </Typography>
+            <View style={styles.search}>
+              <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.gray500} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="가게 이름이나 메뉴로 검색"
+                placeholderTextColor={theme.colors.gray400}
+                value={query}
+                onChangeText={setQuery}
+                returnKeyType="search"
+              />
+              {!!query && (
+                <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                  <MaterialCommunityIcons name="close-circle" size={18} color={theme.colors.gray400} />
+                </Pressable>
+              )}
             </View>
-
+          </View>
+        }
+        // 상단에 걸리는 부분: 카테고리 줄. 뒤로 지나가는 카드가 비치지 않게 흰 배경을 깐다
+        renderSectionHeader={() => (
+          <View style={styles.catsSticky}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cats}>
               {CATEGORIES.map((c) => {
                 const on = category === c.code;
@@ -123,31 +146,29 @@ const HomeScreen = () => {
                 );
               })}
             </ScrollView>
-
-            <View style={styles.listHead}>
-              <Typography mode="subtitle1" color="gray900">
-                {category === 'ALL' ? '마포구 전체' : CATEGORIES.find((c) => c.code === category)?.label}
-              </Typography>
-              <Typography mode="caption1" color="gray500">
-                {stores ? `${filtered.length}곳` : ''}
-              </Typography>
-            </View>
-            {stores === null && <SkeletonList rows={4} />}
           </View>
-        }
-        renderItem={({ item }) => (
+        )}
+        // 첫 카드 위에만 제목 줄을 붙인다 (제목 줄은 고정하지 않고 같이 스크롤)
+        renderItem={({ item, index }) => (
           <View style={{ paddingHorizontal: 20 }}>
+            {index === 0 && listHead}
             <StoreCard store={item} onPress={() => navigation.navigate('StoreDetail', { storeId: item.id })} onToggleFavorite={() => toggleFavorite(item)} />
           </View>
         )}
         ItemSeparatorComponent={() => <View style={styles.sep} />}
-        ListEmptyComponent={
-          stores ? (
-            <View style={styles.empty}>
-              <MaterialCommunityIcons name="store-search-outline" size={40} color={theme.colors.gray300} />
-              <Typography mode="body1" color="gray500">
-                조건에 맞는 가게가 없어요
-              </Typography>
+        // 카드가 하나도 없을 때: 불러오는 중이면 스켈레톤, 다 불러왔으면 제목 줄 + 빈 안내
+        renderSectionFooter={() =>
+          stores === null ? (
+            <SkeletonList rows={4} />
+          ) : filtered.length === 0 ? (
+            <View style={{ paddingHorizontal: 20 }}>
+              {listHead}
+              <View style={styles.empty}>
+                <MaterialCommunityIcons name="store-search-outline" size={40} color={theme.colors.gray300} />
+                <Typography mode="body1" color="gray500">
+                  조건에 맞는 가게가 없어요
+                </Typography>
+              </View>
             </View>
           ) : null
         }
@@ -176,14 +197,16 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   addressBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 12 },
   list: { paddingBottom: 16 },
-  hero: { marginHorizontal: 20, padding: 20, borderRadius: theme.radius.xl, backgroundColor: theme.colors.primary, gap: 16 },
+  hero: { marginHorizontal: 20, marginBottom: 8, padding: 20, borderRadius: theme.radius.xl, backgroundColor: theme.colors.primary, gap: 16 },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: theme.colors.white, borderRadius: theme.radius.md, paddingHorizontal: 14, height: 48 },
   searchInput: { flex: 1, ...typographyStyles.body2, color: theme.colors.gray900, paddingVertical: 0 },
+  // 고정 상태에서 목록이 뒤로 지나가므로 흰 배경 + 아래 구분선으로 경계를 준다
+  catsSticky: { backgroundColor: theme.colors.white, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.gray100 },
   cats: { paddingHorizontal: 20, gap: 14 },
   cat: { alignItems: 'center', gap: 6, width: 56 },
   catIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: theme.colors.orange50, alignItems: 'center', justifyContent: 'center' },
   catIconOn: { backgroundColor: theme.colors.primary },
-  listHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: 20, paddingTop: 4 },
+  listHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 12, paddingBottom: 8 },
   sep: { height: 1, backgroundColor: theme.colors.gray100, marginHorizontal: 20 },
   empty: { alignItems: 'center', gap: 12, paddingVertical: 60 },
   cartBar: {
