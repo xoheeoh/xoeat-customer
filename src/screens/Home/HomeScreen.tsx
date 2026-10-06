@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -33,6 +33,7 @@ const HomeScreen = () => {
   const [address, setAddress] = useState<Address | null>(null);
   const [category, setCategory] = useState('ALL');
   const [query, setQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
@@ -110,7 +111,7 @@ const HomeScreen = () => {
                 {me?.name ? `${me.name}님, ` : ''}간편하게 주문해요
               </Typography>
             </Typography>
-            <View style={styles.search}>
+            <View style={[styles.search, searchFocused && styles.searchFocused]}>
               <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.gray500} />
               <TextInput
                 style={styles.searchInput}
@@ -118,6 +119,8 @@ const HomeScreen = () => {
                 placeholderTextColor={theme.colors.gray400}
                 value={query}
                 onChangeText={setQuery}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
                 returnKeyType="search"
               />
               {!!query && (
@@ -198,8 +201,28 @@ const styles = StyleSheet.create({
   addressBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 12 },
   list: { paddingBottom: 16 },
   hero: { marginHorizontal: 20, marginBottom: 8, padding: 20, borderRadius: theme.radius.xl, backgroundColor: theme.colors.primary, gap: 16 },
-  search: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: theme.colors.white, borderRadius: theme.radius.md, paddingHorizontal: 14, height: 48 },
-  searchInput: { flex: 1, ...typographyStyles.body2, color: theme.colors.gray900, paddingVertical: 0 },
+  // 테두리는 평소 투명으로 두고 포커스 때 색만 바꾼다 (두께가 생겼다 없어지면 크기가 들썩인다)
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.md,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    paddingHorizontal: 14,
+    height: 48,
+  },
+  // 주황 배경 위라 메인색 테두리는 안 보이므로 진한 주황(primaryDark)으로 포커스를 표시한다
+  searchFocused: { borderColor: theme.colors.primaryDark },
+  searchInput: {
+    flex: 1,
+    ...typographyStyles.body2,
+    color: theme.colors.gray900,
+    paddingVertical: 0,
+    // 브라우저 기본 포커스 outline 을 끈다. 포커스 표시는 바깥 테두리 색이 담당한다
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
+  },
   // 고정 상태에서 목록이 뒤로 지나가므로 흰 배경 + 아래 구분선으로 경계를 준다
   catsSticky: { backgroundColor: theme.colors.white, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.gray100 },
   cats: { paddingHorizontal: 20, gap: 14 },

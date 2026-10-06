@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
-import { Animated, Easing, Image, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Animated, Easing, Image, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -144,6 +144,9 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const icon = (CATEGORIES.find((c) => c.code === store?.categoryCd)?.icon ?? 'silverware-fork-knife') as IconName;
   const cartIsHere = cart?.storeId === storeId;
   const highlighted = activeSection ?? sections[0]?.[0];
+  const searching = query.trim().length > 0;
+  /** 검색어에 걸린 메뉴 수 (칩 줄의 안내 문구용) */
+  const resultCount = sections.reduce((sum, [, list]) => sum + list.length, 0);
 
   // 상단 바의 검색창은 접힌 상태에서 보인다. 검색어를 치는 중이거나 입력 중(포커스)일 땐 결과가 줄어 스크롤이 위로 당겨져도 유지한다 (사라지면 포커스를 잃는다)
   const showHeaderSearch = collapsed || searchFocused || query.trim().length > 0;
@@ -226,7 +229,14 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* 2. 메뉴 카테고리 칩 줄 (상단 고정). 바깥은 상단 바 높이만큼 투명 여백, 안쪽이 실제 칩 줄 */}
           <View pointerEvents="box-none" style={styles.chipsSticky}>
             <View onLayout={(e: LayoutChangeEvent) => (chipsRowHeight.current = e.nativeEvent.layout.height)} style={styles.chipsRow}>
-              {sections.length > 0 ? (
+              {searching ? (
+                // 검색 중에는 칩 대신 결과 안내. 칩과 같은 높이를 유지해 줄이 들썩이지 않게 한다
+                <View style={styles.searchSummary}>
+                  <Typography mode="caption1" color="gray600">
+                    ‘{query.trim()}’ 검색 결과 {resultCount}개
+                  </Typography>
+                </View>
+              ) : sections.length > 0 ? (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
                   {sections.map(([name]) => {
                     const on = highlighted === name;
@@ -240,8 +250,8 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   })}
                 </ScrollView>
               ) : (
-                // 메뉴를 불러오기 전이나 결과가 없을 때도 줄 높이는 유지해 화면이 들썩이지 않게 한다
-                <View style={styles.chip} />
+                // 메뉴를 불러오기 전에도 줄 높이는 유지해 화면이 들썩이지 않게 한다 (보이지 않는 자리표시)
+                <View style={styles.chipPlaceholder} />
               )}
             </View>
           </View>
@@ -287,7 +297,7 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <NavIconButton icon="chevron-left" accessibilityLabel="뒤로" onPress={() => navigation.goBack()} />
           <View style={styles.headerMiddle}>
             {searchMounted && (
-              <Animated.View style={[styles.search, searchMotion]}>
+              <Animated.View style={[styles.search, searchFocused && styles.searchFocused, searchMotion]}>
                 <MaterialCommunityIcons name="magnify" size={18} color={theme.colors.gray500} />
                 <TextInput
                   style={styles.searchInput}
@@ -366,8 +376,28 @@ const styles = StyleSheet.create({
   headerBg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: theme.colors.white, borderBottomWidth: 1, borderBottomColor: theme.colors.line },
   headerMiddle: { flex: 1, justifyContent: 'center' },
   // 상단 바 안의 검색창. 양옆 둥근 버튼(40)과 같은 높이
-  search: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.colors.gray50, borderRadius: theme.radius.pill, paddingHorizontal: 12, height: 40 },
-  searchInput: { flex: 1, ...typographyStyles.body2, color: theme.colors.gray900, paddingVertical: 0 },
+  // 테두리는 평소 투명으로 두고 포커스 때 색만 바꾼다 (두께가 생겼다 없어지면 크기가 들썩인다)
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    paddingHorizontal: 12,
+    height: 40,
+  },
+  // 포커스 표시는 공통 SearchBox 와 같은 규칙: 메인색 테두리 + 흰 배경
+  searchFocused: { borderColor: theme.colors.primary, backgroundColor: theme.colors.white },
+  searchInput: {
+    flex: 1,
+    ...typographyStyles.body2,
+    color: theme.colors.gray900,
+    paddingVertical: 0,
+    // 브라우저 기본 포커스 outline 을 끈다. 포커스 표시는 바깥 테두리 색이 담당한다
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
+  },
   // 아래 음수 margin: 다음에 오는 고정 칩 줄의 투명 위 여백(상단 바 높이)만큼 끌어올려 겹치게 한다. 고정 칩 줄 쪽 주석 참고
   info: { padding: 20, gap: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.line, marginBottom: -HEADER_HEIGHT },
   nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
@@ -384,6 +414,8 @@ const styles = StyleSheet.create({
   chips: { paddingHorizontal: 20, gap: 8 },
   chip: { height: 32, paddingHorizontal: 14, borderRadius: theme.radius.pill, backgroundColor: theme.colors.gray100, justifyContent: 'center' },
   chipOn: { backgroundColor: theme.colors.gray900 },
+  chipPlaceholder: { height: 32 },
+  searchSummary: { height: 32, justifyContent: 'center', paddingHorizontal: 20 },
   sectionTitle: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
   sectionGap: { height: 8, backgroundColor: theme.colors.gray50, marginTop: 4 },
   sep: { height: 1, backgroundColor: theme.colors.gray100, marginHorizontal: 20 },
