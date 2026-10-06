@@ -34,6 +34,7 @@ import {
   ProfileEditScreen,
   SignUpScreen,
   StoreDetailScreen,
+  StoreInfoScreen,
 } from '@screens';
 import { theme } from '@styles';
 
@@ -111,6 +112,7 @@ function App(): React.JSX.Element {
 
                     {/* 탐색·주문 */}
                     <Stack.Screen name="StoreDetail" component={StoreDetailScreen} options={{ headerShown: false }} />
+                    <Stack.Screen name="StoreInfo" component={StoreInfoScreen} options={{ header: () => <Header title="가게 정보" bgColor="white" leftButton /> }} />
                     <Stack.Screen name="MenuDetail" component={MenuDetailScreen} options={{ header: () => <Header title="" bgColor="white" leftButton /> }} />
                     <Stack.Screen name="Cart" component={CartScreen} options={{ header: () => <Header title="장바구니" bgColor={theme.colors.bg} leftButton /> }} />
                     <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ header: () => <Header title="주문하기" bgColor={theme.colors.bg} leftButton /> }} />
