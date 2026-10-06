@@ -5,6 +5,7 @@ export { default as MainTabs } from './MainTabs';
 export { default as HomeScreen } from './Home/HomeScreen';
 export { default as FavoritesScreen } from './Home/FavoritesScreen';
 export { default as StoreDetailScreen } from './Store/StoreDetailScreen';
+export { default as StoreInfoScreen } from './Store/StoreInfoScreen';
 export { default as MenuDetailScreen } from './Store/MenuDetailScreen';
 
 export { default as CartScreen } from './Cart/CartScreen';

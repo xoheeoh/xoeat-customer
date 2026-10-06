@@ -14,15 +14,17 @@ interface NavIconButtonProps {
   icon: string;
   onPress: () => void;
   accessibilityLabel?: string;
+  /** 아이콘 색. 기본은 진회색. 켜진 상태(예: 찜한 하트)를 메인색으로 보여줄 때 넘긴다 */
+  iconColor?: string;
 }
 
-const NavIconButton: React.FC<NavIconButtonProps> = ({ icon, onPress, accessibilityLabel }) => (
+const NavIconButton: React.FC<NavIconButtonProps> = ({ icon, onPress, accessibilityLabel, iconColor = theme.colors.gray800 }) => (
   <Pressable
     accessibilityRole="button"
     accessibilityLabel={accessibilityLabel}
     style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     onPress={onPress}>
-    <Icon source={icon} size={22} color={theme.colors.gray800} />
+    <Icon source={icon} size={22} color={iconColor} />
   </Pressable>
 );
 

@@ -14,6 +14,7 @@ export type RootStackParamList = {
 
   // 탐색·주문
   StoreDetail: { storeId: string };
+  StoreInfo: { storeId: string };
   MenuDetail: { storeId: string; menuId: string };
   Cart: undefined;
   Checkout: undefined;

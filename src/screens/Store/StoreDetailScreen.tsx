@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { Animated, Easing, Image, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import type { RootStackParamList } from '@typ/navigation';
@@ -13,23 +13,53 @@ import { setFavorite } from '@apis/customerApi';
 import { isOk } from '@apis/client';
 import { useSession } from '@contexts/SessionContext';
 import { useCart } from '@contexts/CartContext';
-import { CATEGORIES, DAY_LABELS, categoryLabel } from '@dt/constants';
-import { phone as fmtPhone, timeKo, won } from '@utils/formatter';
+import { CATEGORIES } from '@dt/constants';
+import { won } from '@utils/formatter';
 import { MenuRow } from '@components/store';
-import { NavIconButton, ScreenWrapper, SkeletonList, TabBar, Typography } from '@components/common';
+import { NavIconButton, ScreenWrapper, SkeletonList, Typography, typographyStyles } from '@components/common';
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'StoreDetail'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-/** 가게 상세: 상단 정보 · 메뉴 탭(카테고리별) · 가게 정보 탭(영업시간·주소·원산지). 하단에 장바구니 바 */
+/** 화면 맨 위에 떠 있는 바(뒤로·검색·찜)의 높이. 공통 Header 와 같은 56 */
+const HEADER_HEIGHT = 56;
+/** 대표 이미지 높이 */
+const HERO_HEIGHT = 180;
+/** ScrollView 자식 중 상단에 고정할 카테고리 칩 줄의 순번 (0 대표이미지, 1 가게정보, 2 칩 줄) */
+const STICKY_INDEX = 2;
+
+/**
+ * 가게 상세 (쿠팡이츠식): 대표 이미지 · 가게 정보 요약 · 메뉴 카테고리 칩 · 카테고리별 메뉴. 하단에 장바구니 바
+ *
+ * 스크롤 동작
+ * - 대표 이미지와 가게 정보는 스크롤을 따라 올라가 사라진다.
+ * - 이미지가 상단 바 뒤로 들어가면 상단 바가 흰색으로 바뀌고, 뒤로·찜 버튼 사이에 "가게 내 메뉴 검색" 입력창이 나타난다.
+ * - 메뉴 카테고리 칩 줄은 처음부터 보이며, 스크롤하면 상단 바 바로 아래에 고정(sticky)된다.
+ *   고정 위치를 상단 바 아래로 맞추기 위해 칩 줄 바깥에 상단 바 높이만큼 투명한 위 여백을 두고, 바로 위 가게 정보 블록을 같은 크기의 음수 margin 으로 끌어올려 겹친다.
+ *   (고정됐을 때 그 투명 여백은 흰 상단 바에 가려지고, 펼친 상태에선 가게 정보 블록의 끝부분과 겹치지만 터치는 통과시킨다)
+ * - 칩을 누르면 해당 카테고리 제목이 칩 줄 바로 아래 오도록 스크롤한다.
+ * - 가게 정보(영업시간·주소·원산지)는 가게 이름 옆 "가게 정보 >" 로 별도 화면(StoreInfo)에서 본다.
+ */
 const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { storeId } = route.params;
   const { me, favoriteIds, setFavoriteIds } = useSession();
   const { cart, count, itemsAmount } = useCart();
   const [store, setStore] = useState<Store | null>(null);
   const [menus, setMenus] = useState<Menu[] | null>(null);
-  const [tab, setTab] = useState<1 | 2>(1);
+  const [query, setQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  // 스크롤 상태: 이미지가 상단 바 뒤로 들어갔는지(상단 바를 흰색 + 검색창으로), 지금 보는 메뉴 카테고리
+  const scrollRef = useRef<ScrollView>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  /** 메뉴 카테고리 섹션 View 들. 위치를 잴 때 쓴다 */
+  const sectionRefs = useRef<Record<string, React.ElementRef<typeof View> | null>>({});
+  /** 메뉴 카테고리 제목들의 세로 위치(스크롤 내용 기준). 칩 강조 계산에 쓴다 */
+  const sectionTops = useRef<Record<string, number>>({});
+  /** 칩 줄(흰 배경 부분)의 높이. 고정됐을 때 제목이 그 아래 오도록 스크롤 위치를 보정한다 */
+  const chipsRowHeight = useRef(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,16 +68,20 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     }, [storeId, favoriteIds]),
   );
 
+  /** 검색어로 거른 뒤 카테고리별로 묶는다 */
   const sections = useMemo(() => {
     if (!menus) return [];
+    const q = query.trim();
     const map = new Map<string, Menu[]>();
-    menus.forEach((m) => {
-      const list = map.get(m.categoryName) ?? [];
-      list.push(m);
-      map.set(m.categoryName, list);
-    });
+    menus
+      .filter((m) => !q || m.name.includes(q) || m.description.includes(q))
+      .forEach((m) => {
+        const list = map.get(m.categoryName) ?? [];
+        list.push(m);
+        map.set(m.categoryName, list);
+      });
     return [...map.entries()];
-  }, [menus]);
+  }, [menus, query]);
 
   const toggleFavorite = async () => {
     if (!me || !store) return;
@@ -58,66 +92,180 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     if (!isOk(res)) Toast.show({ type: 'error', text1: res.resultMsg });
   };
 
+  /** 고정 영역(상단 바 + 칩 줄)의 전체 높이. 카테고리 제목은 이 아래부터 보여야 한다 */
+  const stickyCoverHeight = () => HEADER_HEIGHT + chipsRowHeight.current;
+
+  /**
+   * 섹션 하나의 세로 위치를 스크롤 내용 기준으로 잰다.
+   * onLayout 은 (특히 웹에서) 요소 자체 크기가 바뀔 때만 다시 불려서, 위쪽 가게 정보가 나중에 로드돼 길어져도 아래 섹션 위치가 갱신되지 않는다.
+   * 그래서 필요한 순간에 직접 잰다.
+   */
+  const measureSection = (name: string, onDone: (top: number) => void) => {
+    const view = sectionRefs.current[name];
+    const content = scrollRef.current?.getInnerViewNode?.();
+    if (!view || !content) return;
+    view.measureLayout(content, (_x, y) => {
+      sectionTops.current[name] = y;
+      onDone(y);
+    });
+  };
+
+  /** 내용 높이가 바뀔 때마다(가게 정보 로드, 검색으로 메뉴 수 변동 등) 모든 섹션 위치를 다시 잰다 */
+  const measureAllSections = () => sections.forEach(([name]) => measureSection(name, () => {}));
+
+  // 스크롤 위치를 애니메이션 값으로 받아, 상단 바 흰 배경의 불투명도를 거기에 연속적으로 연결한다 (툭 바뀌지 않고 서서히)
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const headerBgOpacity = scrollY.interpolate({
+    // 이미지 아랫변이 상단 바에 닿기 48px 전부터 서서히 하얘져서, 닿는 순간 완전히 흰색
+    inputRange: [HERO_HEIGHT - HEADER_HEIGHT - 48, HERO_HEIGHT - HEADER_HEIGHT],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    setCollapsed(y > HERO_HEIGHT - HEADER_HEIGHT);
+
+    // 고정 영역 아래 경계를 지난 제목 중 가장 마지막 것이 "지금 보는 카테고리"
+    let current = sections[0]?.[0] ?? null;
+    for (const [name] of sections) {
+      const top = sectionTops.current[name];
+      if (top !== undefined && top - stickyCoverHeight() <= y + 2) current = name;
+    }
+    setActiveSection(current);
+  };
+
+  const scrollToSection = (name: string) =>
+    measureSection(name, (top) => scrollRef.current?.scrollTo({ y: Math.max(0, top - stickyCoverHeight()), animated: true }));
+
+  // 스크롤 이벤트 하나로 scrollY 갱신 + 위 onScroll 로직 둘 다 처리한다
+  const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false, listener: onScroll });
+
   const icon = (CATEGORIES.find((c) => c.code === store?.categoryCd)?.icon ?? 'silverware-fork-knife') as IconName;
   const cartIsHere = cart?.storeId === storeId;
+  const highlighted = activeSection ?? sections[0]?.[0];
+
+  // 상단 바의 검색창은 접힌 상태에서 보인다. 검색어를 치는 중이거나 입력 중(포커스)일 땐 결과가 줄어 스크롤이 위로 당겨져도 유지한다 (사라지면 포커스를 잃는다)
+  const showHeaderSearch = collapsed || searchFocused || query.trim().length > 0;
+
+  // 검색창 등장/퇴장 애니메이션. 0 = 숨김, 1 = 표시. 사라지는 애니메이션이 끝날 때까지 그려 둬야 하므로 "그려 둘지"를 별도 상태로 관리한다
+  const searchAnim = useRef(new Animated.Value(0)).current;
+  const [searchMounted, setSearchMounted] = useState(false);
+  useEffect(() => {
+    if (showHeaderSearch) {
+      setSearchMounted(true);
+      Animated.timing(searchAnim, { toValue: 1, duration: 180, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    } else {
+      Animated.timing(searchAnim, { toValue: 0, duration: 150, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start(({ finished }) => {
+        if (finished) setSearchMounted(false);
+      });
+    }
+  }, [showHeaderSearch, searchAnim]);
+  const searchMotion = {
+    opacity: searchAnim,
+    transform: [{ translateY: searchAnim.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) }],
+  };
 
   return (
     <ScreenWrapper hasHeader={false} backgroundColor="white">
-      {/* 헤더 (이미지 위에 겹친다) */}
-      <View style={styles.hero}>
-        {store?.imageUrl ? (
-          <Image source={{ uri: store.imageUrl }} style={styles.heroImage} />
-        ) : (
-          <View style={[styles.heroImage, styles.heroEmpty]}>
-            <MaterialCommunityIcons name={icon} size={56} color={theme.colors.orange300} />
-          </View>
-        )}
-        <SafeAreaView edges={['top']} style={styles.heroBar}>
-          <NavIconButton icon="chevron-left" accessibilityLabel="뒤로" onPress={() => navigation.goBack()} />
-          <NavIconButton icon={store?.isFavorite ? 'heart' : 'heart-outline'} accessibilityLabel="찜" onPress={toggleFavorite} />
-        </SafeAreaView>
-      </View>
+      <View style={{ flex: 1 }}>
+        <Animated.ScrollView
+          ref={scrollRef}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          onContentSizeChange={measureAllSections}
+          stickyHeaderIndices={[STICKY_INDEX]}
+          contentContainerStyle={{ paddingBottom: cart ? 96 : 24 }}>
+          {/* 0. 대표 이미지 (상단 바 뒤까지 올라가 있다) */}
+          {store?.imageUrl ? (
+            <Image source={{ uri: store.imageUrl }} style={styles.heroImage} />
+          ) : (
+            <View style={[styles.heroImage, styles.heroEmpty]}>
+              <MaterialCommunityIcons name={icon} size={56} color={theme.colors.orange300} />
+            </View>
+          )}
 
-      <ScrollView contentContainerStyle={{ paddingBottom: cart ? 96 : 24 }}>
-        <View style={styles.info}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Typography mode="heading2" color="gray900" style={{ flexShrink: 1 }}>
-              {store?.name ?? ' '}
-            </Typography>
-            {store && !store.isOpenNow && (
-              <View style={styles.closedPill}>
-                <Typography mode="caption2" color="gray600">
-                  {store.status === 'PAUSED' ? '잠시 주문 중지' : '준비중'}
+          {/* 1. 가게 정보 요약: 이름 + "가게 정보 >" · 소개 · 배달/포장/최소주문 */}
+          <View style={styles.info}>
+            <View style={styles.nameRow}>
+              <View style={styles.nameWithPill}>
+                <Typography mode="heading2" color="gray900" style={{ flexShrink: 1 }}>
+                  {store?.name ?? ' '}
                 </Typography>
+                {store && !store.isOpenNow && (
+                  <View style={styles.closedPill}>
+                    <Typography mode="caption2" color="gray600">
+                      {store.status === 'PAUSED' ? '잠시 주문 중지' : '준비중'}
+                    </Typography>
+                  </View>
+                )}
               </View>
+              {store && (
+                <Pressable onPress={() => navigation.navigate('StoreInfo', { storeId })} hitSlop={8} style={styles.infoLink}>
+                  <Typography mode="caption1" color="gray600">
+                    가게 정보
+                  </Typography>
+                  <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray500} />
+                </Pressable>
+              )}
+            </View>
+            {store && (
+              <>
+                <Typography mode="body2" color="gray600">
+                  {store.intro}
+                </Typography>
+                <View style={styles.metaGrid}>
+                  <Meta icon="moped-outline" label="배달" value={store.deliveryEnabled ? `${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분 · ${store.deliveryFee ? won(store.deliveryFee) : '무료'}` : '미운영'} />
+                  <Meta icon="shopping-outline" label="포장" value={store.pickupEnabled ? '가능' : '미운영'} />
+                  <Meta icon="cash" label="최소주문" value={won(store.minOrderAmount)} />
+                </View>
+              </>
             )}
           </View>
-          {store && (
-            <>
-              <Typography mode="body2" color="gray600">
-                {store.intro}
-              </Typography>
-              <View style={styles.metaGrid}>
-                <Meta icon="moped-outline" label="배달" value={store.deliveryEnabled ? `${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분 · ${store.deliveryFee ? won(store.deliveryFee) : '무료'}` : '미운영'} />
-                <Meta icon="shopping-outline" label="포장" value={store.pickupEnabled ? '가능' : '미운영'} />
-                <Meta icon="cash" label="최소주문" value={won(store.minOrderAmount)} />
-              </View>
-            </>
-          )}
-        </View>
 
-        <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
-          <TabBar active={tab} label1="메뉴" label2="가게 정보" onPress1={() => setTab(1)} onPress2={() => setTab(2)} />
-        </View>
+          {/* 2. 메뉴 카테고리 칩 줄 (상단 고정). 바깥은 상단 바 높이만큼 투명 여백, 안쪽이 실제 칩 줄 */}
+          <View pointerEvents="box-none" style={styles.chipsSticky}>
+            <View onLayout={(e: LayoutChangeEvent) => (chipsRowHeight.current = e.nativeEvent.layout.height)} style={styles.chipsRow}>
+              {sections.length > 0 ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+                  {sections.map(([name]) => {
+                    const on = highlighted === name;
+                    return (
+                      <Pressable key={name} onPress={() => scrollToSection(name)} style={[styles.chip, on && styles.chipOn]}>
+                        <Typography mode="caption1" color={on ? 'white' : 'gray700'}>
+                          {name}
+                        </Typography>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              ) : (
+                // 메뉴를 불러오기 전이나 결과가 없을 때도 줄 높이는 유지해 화면이 들썩이지 않게 한다
+                <View style={styles.chip} />
+              )}
+            </View>
+          </View>
 
-        {tab === 1 &&
-          (menus === null ? (
+          {/* 3~. 카테고리별 메뉴 */}
+          {menus === null ? (
             <View style={{ padding: 20 }}>
               <SkeletonList rows={5} />
             </View>
+          ) : sections.length === 0 ? (
+            <View style={styles.empty}>
+              <MaterialCommunityIcons name="food-off-outline" size={40} color={theme.colors.gray300} />
+              <Typography mode="body1" color="gray500">
+                {query.trim() ? '검색 결과가 없어요' : '등록된 메뉴가 없어요'}
+              </Typography>
+            </View>
           ) : (
             sections.map(([name, list]) => (
-              <View key={name}>
+              // 섹션 View 를 기억해 두고, 칩을 누르면 위치를 재서 여기로 스크롤한다
+              <View
+                key={name}
+                ref={(v) => {
+                  sectionRefs.current[name] = v;
+                }}>
                 <Typography mode="subtitle1" color="gray900" style={styles.sectionTitle}>
                   {name}
                 </Typography>
@@ -130,62 +278,60 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View style={styles.sectionGap} />
               </View>
             ))
-          ))}
+          )}
+        </Animated.ScrollView>
 
-        {tab === 2 && store && (
-          <View style={styles.infoTab}>
-            <InfoBlock title="영업시간">
-              {store.hours.map((h) => (
-                <View key={h.dayOfWeek} style={styles.hourRow}>
-                  <Typography mode="body2" color="gray600" style={{ width: 32 }}>
-                    {DAY_LABELS[h.dayOfWeek]}
-                  </Typography>
-                  <Typography mode="body2" color={h.enabled ? 'gray900' : 'gray400'}>
-                    {h.enabled ? `${timeKo(h.openTime)} ~ ${timeKo(h.closeTime)}${h.breakFrom ? `  (휴게 ${h.breakFrom}~${h.breakTo})` : ''}` : '휴무'}
-                  </Typography>
-                </View>
-              ))}
-            </InfoBlock>
-            <InfoBlock title="가게 정보">
-              <Typography mode="body2" color="gray900">
-                {store.address}
-              </Typography>
-              <Pressable onPress={() => Linking.openURL(`tel:${store.phone.replace(/-/g, '')}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Typography mode="body2" color="blue600">
-                  {fmtPhone(store.phone)}
-                </Typography>
-                <MaterialCommunityIcons name="phone-outline" size={16} color={theme.colors.blue600} />
-              </Pressable>
-              <Typography mode="caption1" color="gray500">
-                업종 {categoryLabel(store.categoryCd)}
-              </Typography>
-            </InfoBlock>
-            {!!store.originInfo && (
-              <InfoBlock title="원산지 표시">
-                <Typography mode="body2" color="gray700">
-                  {store.originInfo}
-                </Typography>
-              </InfoBlock>
+        {/* 상단 바: 평소엔 이미지 위에 투명하게 떠 있고, 이미지가 지나가면 흰 배경 + 가게 내 메뉴 검색창. 흰 배경은 스크롤에 따라 서서히 진해진다 */}
+        <View style={styles.header}>
+          <Animated.View pointerEvents="none" style={[styles.headerBg, { opacity: headerBgOpacity }]} />
+          <NavIconButton icon="chevron-left" accessibilityLabel="뒤로" onPress={() => navigation.goBack()} />
+          <View style={styles.headerMiddle}>
+            {searchMounted && (
+              <Animated.View style={[styles.search, searchMotion]}>
+                <MaterialCommunityIcons name="magnify" size={18} color={theme.colors.gray500} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder={`${store?.name ?? '가게'} 내 메뉴 검색`}
+                  placeholderTextColor={theme.colors.gray400}
+                  value={query}
+                  onChangeText={setQuery}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  returnKeyType="search"
+                />
+                {!!query && (
+                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                    <MaterialCommunityIcons name="close-circle" size={16} color={theme.colors.gray400} />
+                  </Pressable>
+                )}
+              </Animated.View>
             )}
           </View>
-        )}
-      </ScrollView>
+          <NavIconButton
+            icon={store?.isFavorite ? 'heart' : 'heart-outline'}
+            // 찜한 상태는 홈 카드의 하트와 같은 메인색
+            iconColor={store?.isFavorite ? theme.colors.primary : undefined}
+            accessibilityLabel="찜"
+            onPress={toggleFavorite}
+          />
+        </View>
 
-      {cart && (
-        <Pressable style={styles.cartBar} onPress={() => navigation.navigate('Cart')}>
-          <View style={styles.cartCount}>
-            <Typography mode="subtitle4" color="orange700">
-              {count}
+        {cart && (
+          <Pressable style={styles.cartBar} onPress={() => navigation.navigate('Cart')}>
+            <View style={styles.cartCount}>
+              <Typography mode="subtitle4" color="orange700">
+                {count}
+              </Typography>
+            </View>
+            <Typography mode="subtitle2" color="white" style={{ flex: 1 }} numberOfLines={1}>
+              {cartIsHere ? `${itemsAmount.toLocaleString('ko-KR')}원` : `${cart.storeName} 장바구니`}
             </Typography>
-          </View>
-          <Typography mode="subtitle2" color="white" style={{ flex: 1 }} numberOfLines={1}>
-            {cartIsHere ? `${itemsAmount.toLocaleString('ko-KR')}원` : `${cart.storeName} 장바구니`}
-          </Typography>
-          <Typography mode="subtitle2" color="white">
-            장바구니 보기
-          </Typography>
-        </Pressable>
-      )}
+            <Typography mode="subtitle2" color="white">
+              장바구니 보기
+            </Typography>
+          </Pressable>
+        )}
+      </View>
     </ScreenWrapper>
   );
 };
@@ -202,29 +348,46 @@ const Meta: React.FC<{ icon: IconName; label: string; value: string }> = ({ icon
   </View>
 );
 
-const InfoBlock: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <View style={{ gap: 8 }}>
-    <Typography mode="subtitle2" color="gray900">
-      {title}
-    </Typography>
-    {children}
-  </View>
-);
-
 const styles = StyleSheet.create({
-  hero: { position: 'relative' },
-  heroImage: { width: '100%', height: 180, backgroundColor: theme.colors.gray100 },
+  heroImage: { width: '100%', height: HERO_HEIGHT, backgroundColor: theme.colors.gray100 },
   heroEmpty: { alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.orange50 },
-  heroBar: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 8 },
-  info: { padding: 20, gap: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.line, marginBottom: 12 },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HEADER_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+  },
+  // 상단 바 뒤에 깔리는 흰 배경 층. 불투명도만 스크롤에 따라 바뀐다
+  headerBg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: theme.colors.white, borderBottomWidth: 1, borderBottomColor: theme.colors.line },
+  headerMiddle: { flex: 1, justifyContent: 'center' },
+  // 상단 바 안의 검색창. 양옆 둥근 버튼(40)과 같은 높이
+  search: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.colors.gray50, borderRadius: theme.radius.pill, paddingHorizontal: 12, height: 40 },
+  searchInput: { flex: 1, ...typographyStyles.body2, color: theme.colors.gray900, paddingVertical: 0 },
+  // 아래 음수 margin: 다음에 오는 고정 칩 줄의 투명 위 여백(상단 바 높이)만큼 끌어올려 겹치게 한다. 고정 칩 줄 쪽 주석 참고
+  info: { padding: 20, gap: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.line, marginBottom: -HEADER_HEIGHT },
+  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  nameWithPill: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  infoLink: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
   closedPill: { backgroundColor: theme.colors.gray100, borderRadius: theme.radius.pill, paddingHorizontal: 8, height: 22, justifyContent: 'center' },
   metaGrid: { flexDirection: 'row', gap: 8, marginTop: 4 },
   meta: { flex: 1, alignItems: 'center', gap: 2, backgroundColor: theme.colors.gray50, borderRadius: theme.radius.md, paddingVertical: 10 },
+  // 고정 칩 줄의 바깥: 상단 바 높이만큼 투명한 위 여백 → 고정됐을 때 칩 줄이 상단 바 바로 아래에 온다.
+  // 상쇄용 음수 margin 은 여기가 아니라 바로 위 info 블록의 marginBottom 에 둔다. 고정되는 요소 안에 두면 라이브러리의 고정 래퍼 안에서 여백과 서로 상쇄돼 효과가 사라진다
+  chipsSticky: { paddingTop: HEADER_HEIGHT },
+  // 고정 칩 줄의 안쪽: 뒤로 지나가는 메뉴가 비치지 않게 흰 배경 + 아래 구분선
+  chipsRow: { paddingVertical: 10, backgroundColor: theme.colors.white, borderBottomWidth: 1, borderBottomColor: theme.colors.gray100 },
+  chips: { paddingHorizontal: 20, gap: 8 },
+  chip: { height: 32, paddingHorizontal: 14, borderRadius: theme.radius.pill, backgroundColor: theme.colors.gray100, justifyContent: 'center' },
+  chipOn: { backgroundColor: theme.colors.gray900 },
   sectionTitle: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
   sectionGap: { height: 8, backgroundColor: theme.colors.gray50, marginTop: 4 },
   sep: { height: 1, backgroundColor: theme.colors.gray100, marginHorizontal: 20 },
-  infoTab: { padding: 20, gap: 24 },
-  hourRow: { flexDirection: 'row', gap: 8 },
+  empty: { alignItems: 'center', gap: 12, paddingVertical: 60 },
   cartBar: {
     position: 'absolute',
     left: 16,
