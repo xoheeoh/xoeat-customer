@@ -15,7 +15,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "name": "Xoeat | 오늘 뭐 먹지, 한 번에 주문.",
+      "name": "Xoeat | 오늘 뭐 먹지, 간편하게 주문.",
       "output": "single",
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
