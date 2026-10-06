@@ -60,6 +60,17 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const sectionTops = useRef<Record<string, number>>({});
   /** 칩 줄(흰 배경 부분)의 높이. 고정됐을 때 제목이 그 아래 오도록 스크롤 위치를 보정한다 */
   const chipsRowHeight = useRef(0);
+  /**
+   * 칩을 눌러 이동하는 동안에는 "누른 칩이 이긴다": 스크롤 위치로 활성 칩을 바꾸지 않는다.
+   * 섹션이 짧아 제목을 맨 위까지 못 올리는 경우에도 누른 칩이 그대로 켜져 있게 하기 위해서다.
+   * 이동 애니메이션의 스크롤 이벤트가 멈추고 잠시 지나면 풀고, 사용자가 직접 스크롤을 시작하면 바로 푼다.
+   */
+  const pinned = useRef(false);
+  const pinReleaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const releasePinAfter = (ms: number) => {
+    if (pinReleaseTimer.current) clearTimeout(pinReleaseTimer.current);
+    pinReleaseTimer.current = setTimeout(() => (pinned.current = false), ms);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -123,8 +134,22 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   });
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = e.nativeEvent.contentOffset.y;
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    const y = contentOffset.y;
     setCollapsed(y > HERO_HEIGHT - HEADER_HEIGHT);
+
+    // 칩을 눌러 이동 중이면 위치 기반 갱신은 건너뛴다 (누른 칩 유지). 이벤트가 0.2초간 더 안 오면 이동이 끝난 것으로 보고 푼다
+    if (pinned.current) {
+      releasePinAfter(200);
+      return;
+    }
+
+    // 바닥에 닿았으면 마지막 카테고리. 마지막 섹션이 짧아 제목이 맨 위까지 못 올라와도 켜지게 한다
+    const atBottom = y + layoutMeasurement.height >= contentSize.height - 2;
+    if (atBottom && sections.length > 0) {
+      setActiveSection(sections[sections.length - 1][0]);
+      return;
+    }
 
     // 고정 영역 아래 경계를 지난 제목 중 가장 마지막 것이 "지금 보는 카테고리"
     let current = sections[0]?.[0] ?? null;
@@ -135,8 +160,20 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     setActiveSection(current);
   };
 
-  const scrollToSection = (name: string) =>
+  /** 사용자가 손으로 스크롤을 시작하면 "누른 칩 유지"를 바로 푼다 */
+  const onScrollBeginDrag = () => {
+    pinned.current = false;
+    if (pinReleaseTimer.current) clearTimeout(pinReleaseTimer.current);
+  };
+
+  const scrollToSection = (name: string) => {
+    // 누른 칩을 즉시 켜고, 이동이 끝날 때까지 위치 기반 갱신을 막는다.
+    // 이미 그 위치라 스크롤 이벤트가 전혀 안 올 수도 있으므로 1초 뒤에는 어쨌든 푼다
+    setActiveSection(name);
+    pinned.current = true;
+    releasePinAfter(1000);
     measureSection(name, (top) => scrollRef.current?.scrollTo({ y: Math.max(0, top - stickyCoverHeight()), animated: true }));
+  };
 
   // 스크롤 이벤트 하나로 scrollY 갱신 + 위 onScroll 로직 둘 다 처리한다
   const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false, listener: onScroll });
@@ -175,6 +212,7 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         <Animated.ScrollView
           ref={scrollRef}
           onScroll={handleScroll}
+          onScrollBeginDrag={onScrollBeginDrag}
           scrollEventThrottle={16}
           onContentSizeChange={measureAllSections}
           stickyHeaderIndices={[STICKY_INDEX]}
