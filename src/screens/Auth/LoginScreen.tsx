@@ -59,7 +59,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             Xoeat
           </Typography>
           <Typography mode="body2" color="gray500">
-            오늘 뭐 먹지, 한 번에 주문.
+            오늘 뭐 먹지, 간편하게 주문.
           </Typography>
         </View>
 

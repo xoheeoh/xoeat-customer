@@ -87,7 +87,7 @@ const HomeScreen = () => {
               <Typography mode="heading2" color="white">
                 오늘 뭐 먹지?{'\n'}
                 <Typography mode="heading2" color="orange100">
-                  {me?.name ? `${me.name}님, ` : ''}한 번에 주문해요
+                  {me?.name ? `${me.name}님, ` : ''}간편하게 주문해요
                 </Typography>
               </Typography>
               <View style={styles.search}>
