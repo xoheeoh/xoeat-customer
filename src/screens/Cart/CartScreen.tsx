@@ -126,12 +126,16 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
                   {won(item.unitPrice * item.quantity)}
                 </Typography>
               </Pressable>
-              <View style={{ alignItems: 'flex-end', gap: 8 }}>
-                <Pressable onPress={() => remove(item.key)} hitSlop={8}>
-                  <MaterialCommunityIcons name="close" size={18} color={theme.colors.gray400} />
-                </Pressable>
+              {/* 수량 조절이 아래쪽(가격 줄 높이)에 오도록 아래 정렬 */}
+              <View style={{ justifyContent: 'flex-end' }}>
                 <View style={styles.stepper}>
-                  <Pressable onPress={() => (item.quantity > 1 ? setQuantity(item.key, item.quantity - 1) : remove(item.key))} style={styles.stepBtn} hitSlop={6}>
+                  {/* 삭제 버튼은 따로 두지 않는다. 수량 1 에서 빼기 자리가 쓰레기통으로 바뀌어 삭제를 맡는다 */}
+                  <Pressable
+                    onPress={() => (item.quantity > 1 ? setQuantity(item.key, item.quantity - 1) : remove(item.key))}
+                    style={styles.stepBtn}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel={item.quantity > 1 ? '수량 빼기' : `${item.menuName} 삭제`}>
                     <MaterialCommunityIcons name={item.quantity > 1 ? 'minus' : 'trash-can-outline'} size={18} color={theme.colors.gray700} />
                   </Pressable>
                   <Typography mode="subtitle3" color="gray900" style={{ minWidth: 24, textAlign: 'center' }}>
