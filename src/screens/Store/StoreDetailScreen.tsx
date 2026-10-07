@@ -30,7 +30,7 @@ const HERO_HEIGHT = 180;
 const STICKY_INDEX = 2;
 
 /**
- * 가게 상세 (쿠팡이츠식): 대표 이미지 · 가게 정보 요약 · 메뉴 카테고리 칩 · 카테고리별 메뉴. 하단에 장바구니 바
+ * 가게 상세: 대표 이미지 · 가게 정보 요약 · 메뉴 카테고리 칩 · 카테고리별 메뉴. 하단에 장바구니 바
  *
  * 스크롤 동작
  * - 대표 이미지와 가게 정보는 스크롤을 따라 올라가 사라진다.
@@ -172,11 +172,16 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     setActiveSection(name);
     pinned.current = true;
     releasePinAfter(1000);
-    measureSection(name, (top) => scrollRef.current?.scrollTo({ y: Math.max(0, top - stickyCoverHeight()), animated: true }));
+    measureSection(name, (top) =>
+      scrollRef.current?.scrollTo({ y: Math.max(0, top - stickyCoverHeight()), animated: true }),
+    );
   };
 
   // 스크롤 이벤트 하나로 scrollY 갱신 + 위 onScroll 로직 둘 다 처리한다
-  const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false, listener: onScroll });
+  const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+    useNativeDriver: false,
+    listener: onScroll,
+  });
 
   const icon = (CATEGORIES.find((c) => c.code === store?.categoryCd)?.icon ?? 'silverware-fork-knife') as IconName;
   const cartIsHere = cart?.storeId === storeId;
@@ -194,9 +199,19 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   useEffect(() => {
     if (showHeaderSearch) {
       setSearchMounted(true);
-      Animated.timing(searchAnim, { toValue: 1, duration: 180, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+      Animated.timing(searchAnim, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
     } else {
-      Animated.timing(searchAnim, { toValue: 0, duration: 150, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start(({ finished }) => {
+      Animated.timing(searchAnim, {
+        toValue: 0,
+        duration: 150,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
         if (finished) setSearchMounted(false);
       });
     }
@@ -242,7 +257,10 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 )}
               </View>
               {store && (
-                <Pressable onPress={() => navigation.navigate('StoreInfo', { storeId })} hitSlop={8} style={styles.infoLink}>
+                <Pressable
+                  onPress={() => navigation.navigate('StoreInfo', { storeId })}
+                  hitSlop={8}
+                  style={styles.infoLink}>
                   <Typography mode="caption1" color="gray600">
                     가게 정보
                   </Typography>
@@ -256,7 +274,15 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   {store.intro}
                 </Typography>
                 <View style={styles.metaGrid}>
-                  <Meta icon="moped-outline" label="배달" value={store.deliveryEnabled ? `${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분 · ${store.deliveryFee ? won(store.deliveryFee) : '무료'}` : '미운영'} />
+                  <Meta
+                    icon="moped-outline"
+                    label="배달"
+                    value={
+                      store.deliveryEnabled
+                        ? `${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분 · ${store.deliveryFee ? won(store.deliveryFee) : '무료'}`
+                        : '미운영'
+                    }
+                  />
                   <Meta icon="shopping-outline" label="포장" value={store.pickupEnabled ? '가능' : '미운영'} />
                   <Meta icon="cash" label="최소주문" value={won(store.minOrderAmount)} />
                 </View>
@@ -266,7 +292,9 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
           {/* 2. 메뉴 카테고리 칩 줄 (상단 고정). 바깥은 상단 바 높이만큼 투명 여백, 안쪽이 실제 칩 줄 */}
           <View pointerEvents="box-none" style={styles.chipsSticky}>
-            <View onLayout={(e: LayoutChangeEvent) => (chipsRowHeight.current = e.nativeEvent.layout.height)} style={styles.chipsRow}>
+            <View
+              onLayout={(e: LayoutChangeEvent) => (chipsRowHeight.current = e.nativeEvent.layout.height)}
+              style={styles.chipsRow}>
               {searching ? (
                 // 검색 중에는 칩 대신 결과 안내. 칩과 같은 높이를 유지해 줄이 들썩이지 않게 한다
                 <View style={styles.searchSummary}>
@@ -279,7 +307,10 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   {sections.map(([name]) => {
                     const on = highlighted === name;
                     return (
-                      <Pressable key={name} onPress={() => scrollToSection(name)} style={[styles.chip, on && styles.chipOn]}>
+                      <Pressable
+                        key={name}
+                        onPress={() => scrollToSection(name)}
+                        style={[styles.chip, on && styles.chipOn]}>
                         <Typography mode="caption1" color={on ? 'white' : 'gray700'}>
                           {name}
                         </Typography>
@@ -411,7 +442,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   // 상단 바 뒤에 깔리는 흰 배경 층. 불투명도만 스크롤에 따라 바뀐다
-  headerBg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: theme.colors.white, borderBottomWidth: 1, borderBottomColor: theme.colors.line },
+  headerBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: theme.colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.line,
+  },
   headerMiddle: { flex: 1, justifyContent: 'center' },
   // 상단 바 안의 검색창. 양옆 둥근 버튼(40)과 같은 높이
   // 테두리는 평소 투명으로 두고 포커스 때 색만 바꾼다 (두께가 생겼다 없어지면 크기가 들썩인다)
@@ -437,20 +477,50 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   // 아래 음수 margin: 다음에 오는 고정 칩 줄의 투명 위 여백(상단 바 높이)만큼 끌어올려 겹치게 한다. 고정 칩 줄 쪽 주석 참고
-  info: { padding: 20, gap: 10, borderBottomWidth: 1, borderBottomColor: theme.colors.line, marginBottom: -HEADER_HEIGHT },
+  info: {
+    padding: 20,
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.line,
+    marginBottom: -HEADER_HEIGHT,
+  },
   nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   nameWithPill: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   infoLink: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
-  closedPill: { backgroundColor: theme.colors.gray100, borderRadius: theme.radius.pill, paddingHorizontal: 8, height: 22, justifyContent: 'center' },
+  closedPill: {
+    backgroundColor: theme.colors.gray100,
+    borderRadius: theme.radius.pill,
+    paddingHorizontal: 8,
+    height: 22,
+    justifyContent: 'center',
+  },
   metaGrid: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  meta: { flex: 1, alignItems: 'center', gap: 2, backgroundColor: theme.colors.gray50, borderRadius: theme.radius.md, paddingVertical: 10 },
+  meta: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.radius.md,
+    paddingVertical: 10,
+  },
   // 고정 칩 줄의 바깥: 상단 바 높이만큼 투명한 위 여백 → 고정됐을 때 칩 줄이 상단 바 바로 아래에 온다.
   // 상쇄용 음수 margin 은 여기가 아니라 바로 위 info 블록의 marginBottom 에 둔다. 고정되는 요소 안에 두면 라이브러리의 고정 래퍼 안에서 여백과 서로 상쇄돼 효과가 사라진다
   chipsSticky: { paddingTop: HEADER_HEIGHT },
   // 고정 칩 줄의 안쪽: 뒤로 지나가는 메뉴가 비치지 않게 흰 배경 + 아래 구분선
-  chipsRow: { paddingVertical: 10, backgroundColor: theme.colors.white, borderBottomWidth: 1, borderBottomColor: theme.colors.gray100 },
+  chipsRow: {
+    paddingVertical: 10,
+    backgroundColor: theme.colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray100,
+  },
   chips: { paddingHorizontal: 20, gap: 8 },
-  chip: { height: 32, paddingHorizontal: 14, borderRadius: theme.radius.pill, backgroundColor: theme.colors.gray100, justifyContent: 'center' },
+  chip: {
+    height: 32,
+    paddingHorizontal: 14,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.gray100,
+    justifyContent: 'center',
+  },
   chipOn: { backgroundColor: theme.colors.gray900 },
   chipPlaceholder: { height: 32 },
   searchSummary: { height: 32, justifyContent: 'center', paddingHorizontal: 20 },
@@ -472,7 +542,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     boxShadow: theme.shadow.float,
   },
-  cartCount: { minWidth: 24, height: 24, borderRadius: 12, backgroundColor: theme.colors.white, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  cartCount: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: theme.colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
 });
 
 export default StoreDetailScreen;
