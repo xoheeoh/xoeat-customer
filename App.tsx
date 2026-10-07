@@ -113,7 +113,8 @@ function App(): React.JSX.Element {
                     {/* 탐색·주문 */}
                     <Stack.Screen name="StoreDetail" component={StoreDetailScreen} options={{ headerShown: false }} />
                     <Stack.Screen name="StoreInfo" component={StoreInfoScreen} options={{ header: () => <Header title="가게 정보" bgColor="white" leftButton /> }} />
-                    <Stack.Screen name="MenuDetail" component={MenuDetailScreen} options={{ header: () => <Header title="" bgColor="white" leftButton /> }} />
+                    {/* 메뉴 상세는 뒤로 버튼을 이미지 위에 띄우므로 화면 안에서 상단 바를 직접 그린다 */}
+                    <Stack.Screen name="MenuDetail" component={MenuDetailScreen} options={{ headerShown: false }} />
                     <Stack.Screen name="Cart" component={CartScreen} options={{ header: () => <Header title="장바구니" bgColor={theme.colors.bg} leftButton /> }} />
                     <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ header: () => <Header title="주문하기" bgColor={theme.colors.bg} leftButton /> }} />
                     <Stack.Screen name="OrderComplete" component={OrderCompleteScreen} options={{ headerShown: false, gestureEnabled: false }} />
