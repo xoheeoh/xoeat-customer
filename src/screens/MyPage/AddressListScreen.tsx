@@ -14,6 +14,19 @@ import { Badge, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typo
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddressList'>;
+type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+/**
+ * 배송지 라벨별 아이콘. 칸(22) 안에서 눈에 보이는 크기가 비슷해지도록 크기를 따로 맞췄다.
+ * - 회사(빌딩)는 꽉 찬 네모라 같은 크기면 커 보여 작게.
+ * - 기타는 특정 장소가 아닌 "어떤 장소"라 위치 핀. 집·회사 외 라벨(직접 입력 등)도 여기에 해당한다.
+ */
+const LABEL_ICONS: Record<string, { name: IconName; size: number }> = {
+  집: { name: 'home-outline', size: 22 },
+  회사: { name: 'office-building-outline', size: 18 },
+};
+const OTHER_ICON = { name: 'map-marker-outline' as IconName, size: 22 };
+const labelIcon = (label: string) => LABEL_ICONS[label] ?? OTHER_ICON;
 
 /**
  * 배송지 목록.
@@ -47,7 +60,12 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
   const pickForOrder = (a: Address) => navigation.popTo('Checkout', { addressId: a.id }, { merge: true });
 
   const remove = async (a: Address) => {
-    const yes = await confirm({ title: '배송지 삭제', message1: `'${a.label || a.roadAddress}'을(를) 삭제할까요?`, confirmText: '삭제', cancelText: '취소' });
+    const yes = await confirm({
+      title: '배송지 삭제',
+      message1: `'${a.label || a.roadAddress}'을(를) 삭제할까요?`,
+      confirmText: '삭제',
+      cancelText: '취소',
+    });
     if (!yes) return;
     const res = await deleteAddress(a.id);
     if (isOk(res)) setList((prev) => (prev ?? []).filter((x) => x.id !== a.id));
@@ -67,8 +85,19 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={styles.sep} />}
           renderItem={({ item }) => (
-            <Pressable onPress={() => (selectMode ? pickForOrder(item) : navigation.navigate('AddressEdit', { addressId: item.id }))} style={styles.row}>
-              <MaterialCommunityIcons name={item.label === '회사' ? 'office-building-outline' : 'home-outline'} size={22} color={item.isDefault ? theme.colors.primary : theme.colors.gray500} />
+            <Pressable
+              onPress={() =>
+                selectMode ? pickForOrder(item) : navigation.navigate('AddressEdit', { addressId: item.id })
+              }
+              style={styles.row}>
+              {/* 칸은 22 로 고정하고 그 안에서 가운데 정렬. 아이콘마다 눈에 보이는 크기가 달라 크기를 따로 둔다 (LABEL_ICONS 참고) */}
+              <View style={styles.labelIcon}>
+                <MaterialCommunityIcons
+                  name={labelIcon(item.label).name}
+                  size={labelIcon(item.label).size}
+                  color={item.isDefault ? theme.colors.primary : theme.colors.gray500}
+                />
+              </View>
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Typography mode="subtitle2" color="gray900">
@@ -107,7 +136,9 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
                 )}
               </View>
               {/* 공통 라디오 모양. 줄이 위쪽 정렬이라 첫 줄 글자(줄높이 24)와 가운데가 맞도록 1px 내린다 */}
-              {selectMode && <RadioIndicator selected={selectedId ? item.id === selectedId : item.isDefault} style={styles.radio} />}
+              {selectMode && (
+                <RadioIndicator selected={selectedId ? item.id === selectedId : item.isDefault} style={styles.radio} />
+              )}
             </Pressable>
           )}
           ListEmptyComponent={
@@ -118,7 +149,15 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
               </Typography>
             </View>
           }
-          ListFooterComponent={<PrimaryButton label="+ 새 배송지 추가" size="md" buttonColor={theme.colors.white} onPress={() => navigation.navigate('AddressEdit')} style={{ marginTop: 16 }} />}
+          ListFooterComponent={
+            <PrimaryButton
+              label="+ 새 배송지 추가"
+              size="md"
+              buttonColor={theme.colors.white}
+              onPress={() => navigation.navigate('AddressEdit')}
+              style={{ marginTop: 16 }}
+            />
+          }
         />
       )}
     </ScreenWrapper>
@@ -129,6 +168,7 @@ const styles = StyleSheet.create({
   list: { padding: 20, flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14 },
   radio: { marginTop: 1 },
+  labelIcon: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
   actions: { flexDirection: 'row', gap: 14, marginTop: 6 },
   sep: { height: 1, backgroundColor: theme.colors.gray100 },
   empty: { alignItems: 'center', gap: 12, paddingVertical: 60 },
