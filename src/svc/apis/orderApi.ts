@@ -96,10 +96,19 @@ export const cancelMyOrder = (orderId: string) =>
     return { order: toOrder(row) };
   });
 
-/** 내 주문의 상태 변경 구독 (RLS 로 내 주문만 온다). 페이로드에 항목·가게명이 없으므로 화면은 다시 조회한다 */
+/** 구독마다 다른 채널 이름을 만들기 위한 일련번호 */
+let myOrdersChannelSeq = 0;
+
+/**
+ * 내 주문의 상태 변경 구독 (RLS 로 내 주문만 온다). 페이로드에 항목·가게명이 없으므로 화면은 다시 조회한다.
+ *
+ * 채널 이름은 호출마다 다르게 만든다. supabase-js 는 같은 이름의 채널이 이미 있으면 새로 만들지 않고 그걸 돌려주는데,
+ * 이미 subscribe() 된 채널에 .on() 을 또 붙이면 "cannot add postgres_changes callbacks after subscribe()" 오류가 난다.
+ * 주문내역 탭(항상 떠 있음)과 주문 상세가 동시에 구독하면 바로 이 상황이 된다.
+ */
 export const subscribeMyOrders = (onChange: (orderId: string, status: OrderStatus) => void) => {
   const channel = supabase
-    .channel('my-orders')
+    .channel(`my-orders-${++myOrdersChannelSeq}`)
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
       const r = payload.new as OrderRow;
       onChange(r.id, r.status);
