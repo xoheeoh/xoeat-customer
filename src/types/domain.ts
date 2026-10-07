@@ -111,6 +111,8 @@ export interface Cart {
   storeId: string;
   storeName: string;
   items: CartItem[];
+  /** 배달/포장. 장바구니 화면에서 고르고 주문 화면이 그대로 쓴다. 없으면 배달 */
+  orderType?: OrderType;
 }
 
 export interface OrderItem {

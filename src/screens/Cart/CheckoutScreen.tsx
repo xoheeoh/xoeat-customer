@@ -41,15 +41,15 @@ const Section: React.FC<{ title: string; action?: { label: string; onPress: () =
 );
 
 /**
- * 주문하기: 배달/포장 · 배달 주소 · 주문자 · 요청사항 · 결제수단 · 금액.
+ * 주문하기: 배달 주소(또는 픽업 장소) · 주문자 · 요청사항 · 결제수단 · 금액.
+ * 배달/포장은 장바구니 화면에서 이미 정해져 오므로 여기서는 고른 쪽의 내용만 보여준다.
  * "결제하기"를 누르면 모의 결제창(시트)이 뜨고, 승인되면 place_order 로 주문이 만들어진다.
  */
 const CheckoutScreen: React.FC<Props> = ({ navigation }) => {
-  const { cart, itemsAmount, clear } = useCart();
+  const { cart, itemsAmount, orderType: chosenType, clear } = useCart();
   const { me } = useSession();
   const { alert } = useDialog();
   const [store, setStore] = useState<Store | null>(null);
-  const [orderType, setOrderType] = useState<OrderType>('DELIVERY');
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [addressId, setAddressId] = useState<string | null>(null);
@@ -78,9 +78,8 @@ const CheckoutScreen: React.FC<Props> = ({ navigation }) => {
     if (cart) getStore(cart.storeId).then((res) => isOk(res) && res.store && setStore(res.store));
   }, [cart?.storeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (store && !store.deliveryEnabled) setOrderType('PICKUP');
-  }, [store]);
+  // 장바구니에서 고른 값이 가게가 지원하지 않는 쪽이면(그 사이 가게 설정이 바뀐 경우) 지원하는 쪽으로 바로잡는다
+  const orderType: OrderType = store && chosenType === 'DELIVERY' && !store.deliveryEnabled ? 'PICKUP' : store && chosenType === 'PICKUP' && !store.pickupEnabled ? 'DELIVERY' : chosenType;
 
   if (!cart || !me) {
     return <ScreenWrapper backgroundColor={theme.colors.bg}><View /></ScreenWrapper>;
@@ -116,30 +115,9 @@ const CheckoutScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <ScreenWrapper backgroundColor={theme.colors.bg} keyboardBottomInset={BOTTOM_BTN_BOX_HEIGHT}>
       <KeyboardAwareScrollView contentContainerStyle={styles.container} keyboardAccessoryHeight={BOTTOM_BTN_BOX_HEIGHT}>
-        {/* 주문 방식 */}
-        <Section title="주문 방식">
-          <View style={styles.typeRow}>
-            {(['DELIVERY', 'PICKUP'] as OrderType[]).map((t) => {
-              const enabled = t === 'DELIVERY' ? store?.deliveryEnabled !== false : store?.pickupEnabled !== false;
-              const on = orderType === t;
-              return (
-                <Pressable key={t} onPress={() => enabled && setOrderType(t)} style={[styles.typeChip, on && styles.typeChipOn, !enabled && { opacity: 0.4 }]} disabled={!enabled}>
-                  <MaterialCommunityIcons name={t === 'DELIVERY' ? 'moped-outline' : 'shopping-outline'} size={20} color={on ? theme.colors.orange700 : theme.colors.gray500} />
-                  <Typography mode="subtitle3" color={on ? 'orange700' : 'gray600'}>
-                    {t === 'DELIVERY' ? '배달' : '포장'}
-                  </Typography>
-                  <Typography mode="caption1" color="gray500">
-                    {t === 'DELIVERY' ? (store ? `${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분` : '') : '가게 방문'}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Section>
-
-        {/* 배달 주소 */}
+        {/* 배달 주소 (배달 주문일 때). 배달/포장은 장바구니에서 이미 골랐다 */}
         {orderType === 'DELIVERY' && (
-          <Section title="배달 주소" action={{ label: address ? '변경' : '등록', onPress: () => navigation.navigate('AddressList', { selectMode: true }) }}>
+          <Section title={store ? `배달 주소 · ${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분` : '배달 주소'} action={{ label: address ? '변경' : '등록', onPress: () => navigation.navigate('AddressList', { selectMode: true }) }}>
             {address ? (
               <View style={{ gap: 2 }}>
                 <Typography mode="body1" color="gray900">
@@ -245,7 +223,7 @@ const CheckoutScreen: React.FC<Props> = ({ navigation }) => {
           <Row label="총 결제금액" value={won(total)} strong />
           {short > 0 && (
             <Typography mode="caption1" color="red600">
-              배달 최소 주문금액까지 {won(short)} 부족해요. 메뉴를 더 담거나 포장으로 바꿔 주세요.
+              배달 최소 주문금액까지 {won(short)} 부족해요. 장바구니에서 메뉴를 더 담거나{store?.pickupEnabled ? ' 포장으로 바꿔' : ''} 주세요.
             </Typography>
           )}
         </Section>
@@ -300,9 +278,6 @@ const styles = StyleSheet.create({
   container: { padding: 16, gap: 12 },
   card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, gap: 12, boxShadow: theme.shadow.card },
   cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  typeRow: { flexDirection: 'row', gap: 10 },
-  typeChip: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 12, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.line },
-  typeChipOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
   pick: { paddingHorizontal: 12, height: 32, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: theme.colors.line, alignItems: 'center', justifyContent: 'center' },
   pickOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
   cardChip: { width: 36, height: 36, borderRadius: 10, backgroundColor: theme.colors.gray900, alignItems: 'center', justifyContent: 'center' },
