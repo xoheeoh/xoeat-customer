@@ -17,12 +17,14 @@ export type RootStackParamList = {
   StoreInfo: { storeId: string };
   MenuDetail: { storeId: string; menuId: string };
   Cart: undefined;
-  Checkout: undefined;
+  /** addressId: 배달 주소 선택 화면에서 고르고 돌아온 주소 (기본 주소와 별개로 이번 주문에만 쓴다) */
+  Checkout: { addressId?: string } | undefined;
   OrderComplete: { orderId: string };
   OrderDetail: { orderId: string };
 
   // 마이페이지
-  AddressList: { selectMode?: boolean } | undefined;
+  /** selectMode: 주문 화면에서 이번 주문의 배달 주소를 고르는 모드. selectedId: 지금 고른 주소 (라디오 표시용) */
+  AddressList: { selectMode?: boolean; selectedId?: string } | undefined;
   AddressEdit: { addressId?: string } | undefined;
   PaymentMethodList: { selectMode?: boolean } | undefined;
   PaymentMethodAdd: undefined;

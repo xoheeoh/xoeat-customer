@@ -45,7 +45,9 @@ const Section: React.FC<{ title: string; action?: { label: string; onPress: () =
  * 배달/포장은 장바구니 화면에서 이미 정해져 오므로 여기서는 고른 쪽의 내용만 보여준다.
  * "결제하기"를 누르면 모의 결제창(시트)이 뜨고, 승인되면 place_order 로 주문이 만들어진다.
  */
-const CheckoutScreen: React.FC<Props> = ({ navigation }) => {
+const CheckoutScreen: React.FC<Props> = ({ navigation, route }) => {
+  /** 배달 주소 선택 화면에서 고르고 돌아온 주소. 기본 주소보다 우선한다 */
+  const pickedAddressId = route.params?.addressId;
   const { cart, itemsAmount, orderType: chosenType, clear } = useCart();
   const { me } = useSession();
   const { alert } = useDialog();
@@ -64,14 +66,20 @@ const CheckoutScreen: React.FC<Props> = ({ navigation }) => {
       getAddresses().then((res) => {
         const list = isOk(res) && res.addresses ? res.addresses : [];
         setAddresses(list);
-        setAddressId((cur) => cur && list.some((a) => a.id === cur) ? cur : (list.find((a) => a.isDefault) ?? list[0])?.id ?? null);
+        // 우선순위: 선택 화면에서 고른 주소 → 지금 고른 주소 → 기본 주소 → 첫 주소 (삭제된 주소는 건너뛴다)
+        setAddressId((cur) => {
+          const exists = (id?: string | null) => !!id && list.some((a) => a.id === id);
+          if (exists(pickedAddressId)) return pickedAddressId!;
+          if (exists(cur)) return cur;
+          return (list.find((a) => a.isDefault) ?? list[0])?.id ?? null;
+        });
       });
       getPaymentMethods().then((res) => {
         const list = isOk(res) && res.methods ? res.methods : [];
         setMethods(list);
         setMethodId((cur) => cur && list.some((m) => m.id === cur) ? cur : (list.find((m) => m.isDefault) ?? list[0])?.id ?? null);
       });
-    }, []),
+    }, [pickedAddressId]),
   );
 
   useEffect(() => {
@@ -117,7 +125,7 @@ const CheckoutScreen: React.FC<Props> = ({ navigation }) => {
       <KeyboardAwareScrollView contentContainerStyle={styles.container} keyboardAccessoryHeight={BOTTOM_BTN_BOX_HEIGHT}>
         {/* 배달 주소 (배달 주문일 때). 배달/포장은 장바구니에서 이미 골랐다 */}
         {orderType === 'DELIVERY' && (
-          <Section title={store ? `배달 주소 · ${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분` : '배달 주소'} action={{ label: address ? '변경' : '등록', onPress: () => navigation.navigate('AddressList', { selectMode: true }) }}>
+          <Section title={store ? `배달 주소 · ${store.deliveryMinutesMin}~${store.deliveryMinutesMax}분` : '배달 주소'} action={{ label: address ? '변경' : '등록', onPress: () => navigation.navigate('AddressList', { selectMode: true, selectedId: addressId ?? undefined }) }}>
             {address ? (
               <View style={{ gap: 2 }}>
                 <Typography mode="body1" color="gray900">
