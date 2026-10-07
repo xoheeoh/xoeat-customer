@@ -10,7 +10,7 @@ import type { PaymentMethod } from '@typ/domain';
 import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from '@apis/customerApi';
 import { isOk } from '@apis/client';
 import { useDialog } from '@contexts/DialogContext';
-import { Badge, InfoBox, PrimaryButton, ScreenWrapper, SkeletonList, Typography } from '@components/common';
+import { Badge, InfoBox, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typography } from '@components/common';
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PaymentMethodList'>;
@@ -107,7 +107,8 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
                   </View>
                 )}
               </View>
-              {selectMode && <MaterialCommunityIcons name={item.isDefault ? 'radiobox-marked' : 'radiobox-blank'} size={22} color={item.isDefault ? theme.colors.primary : theme.colors.gray300} />}
+              {/* 공통 라디오 모양 */}
+              {selectMode && <RadioIndicator selected={item.isDefault} />}
             </Pressable>
           )}
           ListEmptyComponent={
