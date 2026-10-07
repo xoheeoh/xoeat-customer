@@ -23,6 +23,8 @@ type StoreRow = {
   delivery_minutes_max: number;
   region: string;
   store_hours: HourRow[];
+  /** 가게 목록 조회에서만 함께 가져온다 (메뉴명 검색용) */
+  menus?: { name: string }[];
 };
 
 const STORE_SELECT = 'id, name, category_cd, intro, origin_info, phone, address, image_url, min_order_amount, delivery_fee, delivery_enabled, pickup_enabled, status, delivery_minutes_min, delivery_minutes_max, region, store_hours(*)';
@@ -78,13 +80,14 @@ const toStore = (r: StoreRow, favoriteIds: Set<string>): Store => {
     hours,
     isOpenNow: r.status === 'OPEN' && (hours.length === 0 || isOpenAt(hours)),
     isFavorite: favoriteIds.has(r.id),
+    menuNames: r.menus?.map((m) => m.name),
   };
 };
 
-/** 가게 목록. 영업중 먼저, 이름순 */
+/** 가게 목록. 영업중 먼저, 이름순. 홈 검색용으로 메뉴 이름도 함께 가져온다 (숨김 메뉴는 RLS 로 제외) */
 export const getStores = (favoriteIds: string[] = []) =>
   run(async () => {
-    const rows = unwrap(await supabase.from('stores').select(STORE_SELECT).order('name')) as unknown as StoreRow[];
+    const rows = unwrap(await supabase.from('stores').select(`${STORE_SELECT}, menus(name)`).order('name')) as unknown as StoreRow[];
     const fav = new Set(favoriteIds);
     const stores = rows.map((r) => toStore(r, fav)).sort((a, b) => Number(b.isOpenNow) - Number(a.isOpenNow));
     return { stores };
