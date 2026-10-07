@@ -161,12 +161,12 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* 문구는 반드시 하나의 문자열로 넘긴다. {식}이 섞인 JSX 는 문자열 배열이 되어 InfoBox 가 작은 글씨 스타일을 입히지 못한다 */}
         {store && short > 0 && (
-          <InfoBox tone="yellow" icon="alert-circle-outline">
+          <InfoBox icon="alert-circle-outline">
             {`배달 최소 주문금액 ${won(store.minOrderAmount)}까지 ${won(short)} 남았어요.${store.pickupEnabled ? ' 포장 주문은 금액 제한 없이 가능해요.' : ''}`}
           </InfoBox>
         )}
         {store && !store.isOpenNow && (
-          <InfoBox tone="yellow" icon="store-clock-outline">
+          <InfoBox icon="store-clock-outline">
             지금은 가게가 주문을 받지 않는 시간이에요. 영업시간에 다시 주문해 주세요.
           </InfoBox>
         )}
