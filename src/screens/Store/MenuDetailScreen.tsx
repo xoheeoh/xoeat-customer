@@ -11,7 +11,7 @@ import { isOk } from '@apis/client';
 import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
-import { Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, ScreenWrapper, SkeletonList, Typography } from '@components/common';
+import { Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, CheckBox, RadioIndicator, ScreenWrapper, SkeletonList, Typography, useRadioBounce } from '@components/common';
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuDetail'>;
@@ -150,21 +150,27 @@ const MenuDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
             {g.options.map((o) => {
               const on = (selected[g.id] ?? []).includes(o.id);
+              const label = (
+                <Typography mode="body2" color={o.soldOut ? 'gray400' : 'gray900'} style={styles.optionLabel} numberOfLines={2}>
+                  {o.name}
+                  {o.soldOut ? '  (품절)' : ''}
+                </Typography>
+              );
+              // 누르는 범위는 "표시(라디오/체크) + 라벨"까지. 빈 공간과 오른쪽 금액은 눌러도 반응하지 않는다.
+              // 모양은 공통 Radio / CheckBox 부품과 같다 (사장님 앱과 동일). 체크박스는 누를 때 튕기는 효과까지 그대로
               return (
-                <Pressable key={o.id} onPress={() => toggle(g, o)} style={styles.option} disabled={o.soldOut}>
-                  <MaterialCommunityIcons
-                    name={g.maxSelect === 1 ? (on ? 'radiobox-marked' : 'radiobox-blank') : on ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                    size={22}
-                    color={o.soldOut ? theme.colors.gray200 : on ? theme.colors.primary : theme.colors.gray300}
-                  />
-                  <Typography mode="body1" color={o.soldOut ? 'gray400' : 'gray900'} style={{ flex: 1 }}>
-                    {o.name}
-                    {o.soldOut ? '  (품절)' : ''}
-                  </Typography>
+                <View key={o.id} style={styles.option}>
+                  {g.maxSelect === 1 ? (
+                    <OptionRadio selected={on} disabled={o.soldOut} onPress={() => toggle(g, o)}>
+                      {label}
+                    </OptionRadio>
+                  ) : (
+                    <CheckBox isChecked={on} setIsChecked={() => toggle(g, o)} disabled={o.soldOut} style={styles.optionPress} labelComponent={label} />
+                  )}
                   <Typography mode="body2" color={o.soldOut ? 'gray400' : 'gray600'}>
                     {o.price ? `+${won(o.price)}` : ''}
                   </Typography>
-                </Pressable>
+                </View>
               );
             })}
           </View>
@@ -197,6 +203,27 @@ const MenuDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
+/** 라디오 옵션의 누르는 영역(동그라미 + 라벨). 줄마다 눌림 효과 값을 따로 가져야 해서 컴포넌트로 분리했다 */
+const OptionRadio: React.FC<{ selected: boolean; disabled: boolean; onPress: () => void; children: React.ReactNode }> = ({ selected, disabled, onPress, children }) => {
+  const bounce = useRadioBounce();
+  return (
+    <Pressable
+      style={styles.optionPress}
+      disabled={disabled}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected, disabled }}
+      onPressIn={bounce.onPressIn}
+      onPressOut={bounce.onPressOut}
+      onPress={() => {
+        bounce.onPress();
+        onPress();
+      }}>
+      <RadioIndicator selected={selected} disabled={disabled} style={bounce.style} />
+      {children}
+    </Pressable>
+  );
+};
+
 const styles = StyleSheet.create({
   image: { width: '100%', height: 220, backgroundColor: theme.colors.gray100 },
   imageEmpty: { alignItems: 'center', justifyContent: 'center' },
@@ -204,7 +231,12 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4 },
   group: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 8, borderBottomColor: theme.colors.gray50 },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
-  option: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11 },
+  // 옵션 한 줄: 왼쪽 "표시 + 라벨"(누르는 영역), 오른쪽 금액. 공통 Radio 줄과 같은 높이(48)
+  option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, height: 48 },
+  // 누르는 영역. CheckBox 의 기본 간격(8)을 Radio 줄과 같은 10 으로 덮는다. 라벨이 길면 금액 자리를 침범하지 않고 줄어든다
+  optionPress: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 48, flexShrink: 1 },
+  // 라벨은 Radio 라벨처럼 body2 에서 굵기만 Medium
+  optionLabel: { flexShrink: 1, fontFamily: 'Pretendard-Medium' },
   qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: theme.colors.line, borderRadius: theme.radius.md, padding: 4 },
   stepBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
