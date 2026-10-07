@@ -94,11 +94,9 @@ const MenuOptionGroups: React.FC<MenuOptionGroupsProps> = ({ groups, selected, o
           <Typography mode="subtitle1" color="gray900">
             {g.name}
           </Typography>
-          {/* Badge 는 기본이 위쪽 정렬(alignSelf flex-start)이라, 그룹명과 세로 가운데를 맞추려면 가운데 정렬로 덮어야 한다 */}
           <Badge
             label={g.required ? `필수 · ${g.minSelect === g.maxSelect ? `${g.minSelect}개` : `${g.minSelect}~${g.maxSelect}개`}` : `선택 · 최대 ${g.maxSelect}개`}
             tone={g.required ? 'orange' : 'gray'}
-            style={styles.groupBadge}
           />
         </View>
         {g.options.map((o) => {
@@ -153,9 +151,7 @@ const OptionRadio: React.FC<{ selected: boolean; disabled: boolean; onPress: () 
 const styles = StyleSheet.create({
   groupScreen: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 8, borderBottomColor: theme.colors.gray50 },
   groupSheet: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.gray100 },
-  groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
-  groupBadge: { alignSelf: 'center' },
-  // 옵션 한 줄: 왼쪽 "표시 + 라벨"(누르는 영역), 오른쪽 금액. 공통 Radio 줄과 같은 높이(48)
+  groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },  // 옵션 한 줄: 왼쪽 "표시 + 라벨"(누르는 영역), 오른쪽 금액. 공통 Radio 줄과 같은 높이(48)
   option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, height: 48 },
   // 누르는 영역. CheckBox 의 기본 간격(8)을 Radio 줄과 같은 10 으로 덮는다. 라벨이 길면 금액 자리를 침범하지 않고 줄어든다
   optionPress: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 48, flexShrink: 1 },
