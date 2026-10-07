@@ -13,8 +13,8 @@ export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 }
 export const screen = {
   /** 첫 내용이 글자·입력칸인 폼 화면 */
   topForm: 16,
-  /** 첫 내용이 카드인 화면. 카드 안쪽 여백이 숨 쉴 공간을 대신한다 */
-  topCard: 8,
+  /** 첫 내용이 카드인 화면. 헤더 아래 빈 공간과 카드 안쪽 여백이 숨 쉴 공간을 대신하므로 더하지 않는다 (홈 화면과 같은 간격) */
+  topCard: 0,
   /** 하단 고정 버튼이 없는 화면의 아래 여백. 안전 영역 위에 더한다. 버튼이 있는 화면은 KeyboardAwareScrollView 가 따로 계산한다 */
   bottom: 16,
 } as const;

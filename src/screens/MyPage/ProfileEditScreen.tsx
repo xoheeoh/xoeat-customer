@@ -11,6 +11,7 @@ import { useDialog } from '@contexts/DialogContext';
 import { loadingController } from '@utils/loadingController';
 import { phone as fmtPhone } from '@utils/formatter';
 import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, InfoBox, KeyboardAwareScrollView, ScreenWrapper, TextField } from '@components/common';
+import { screen } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 const PHONE_RULE = /^01[016789]-?\d{3,4}-?\d{4}$/;
@@ -55,6 +56,6 @@ const ProfileEditScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({ container: { padding: 20, gap: 16 } });
+const styles = StyleSheet.create({ container: { paddingHorizontal: 20, paddingTop: screen.topForm, paddingBottom: 20, gap: 16 } });
 
 export default ProfileEditScreen;

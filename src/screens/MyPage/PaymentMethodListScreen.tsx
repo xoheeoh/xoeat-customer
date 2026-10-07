@@ -12,7 +12,7 @@ import { isOk } from '@apis/client';
 import { useDialog } from '@contexts/DialogContext';
 import { cardBrandColor } from '@dt/constants';
 import { Badge, InfoBox, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PaymentMethodList'>;
 
@@ -131,7 +131,7 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  list: { padding: 20, gap: 10, flexGrow: 1 },
+  list: { paddingHorizontal: 20, paddingTop: screen.topCard, paddingBottom: 20, gap: 10, flexGrow: 1 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.line },
   cardRowOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
   badgeOnPicked: { backgroundColor: theme.colors.white },

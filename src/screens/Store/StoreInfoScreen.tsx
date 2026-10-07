@@ -10,7 +10,7 @@ import { isOk } from '@apis/client';
 import { DAY_LABELS, categoryLabel } from '@dt/constants';
 import { phone as fmtPhone, timeKo } from '@utils/formatter';
 import { ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'StoreInfo'>;
 
@@ -86,7 +86,7 @@ const InfoBlock: React.FC<{ title: string; children: React.ReactNode }> = ({ tit
 );
 
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 24 },
+  container: { paddingHorizontal: 20, paddingTop: screen.topForm, paddingBottom: 20, gap: 24 },
   hourRow: { flexDirection: 'row', gap: 8 },
   phoneRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });
