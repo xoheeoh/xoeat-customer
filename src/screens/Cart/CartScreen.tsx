@@ -93,9 +93,12 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
 
         <View style={styles.card}>
           <View style={styles.storeRow}>
-            <Pressable onPress={() => navigation.navigate('StoreDetail', { storeId: cart.storeId })} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
+            {/* 누르는 범위는 "아이콘 가게명 >"까지. flex: 1 을 주면 "전체 삭제" 앞 빈 공간까지 눌린다. 이름이 길면 전체 삭제를 밀지 않고 줄어든다 */}
+            <Pressable
+              onPress={() => navigation.navigate('StoreDetail', { storeId: cart.storeId })}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1, marginRight: 12 }}>
               <MaterialCommunityIcons name="storefront-outline" size={18} color={theme.colors.gray700} style={styles.inlineIcon} />
-              <Typography mode="subtitle2" color="gray900">
+              <Typography mode="subtitle2" color="gray900" numberOfLines={1} style={{ flexShrink: 1 }}>
                 {cart.storeName}
               </Typography>
               <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray400} style={styles.inlineIcon} />
