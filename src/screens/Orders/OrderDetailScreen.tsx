@@ -67,7 +67,13 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const cancel = async () => {
     if (!order) return;
-    const yes = await confirm({ title: '주문 취소', message1: '가게가 접수하기 전이라 바로 취소할 수 있어요.', message2: '결제는 자동으로 취소돼요. 취소할까요?', confirmText: '주문 취소', cancelText: '닫기' });
+    const yes = await confirm({
+      title: '주문 취소',
+      message1: '가게가 접수하기 전이라 바로 취소할 수 있어요.',
+      message2: '결제는 자동으로 취소돼요. 취소할까요?',
+      confirmText: '주문 취소',
+      cancelText: '닫기',
+    });
     if (!yes) return;
     loadingController.start();
     const res = await cancelMyOrder(order.id);
@@ -93,7 +99,13 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const steps = STEPS[order.orderType];
   const stepIdx = steps.findIndex((s) => s.status === order.status);
   const currentIdx = order.status === 'COMPLETED' ? steps.length - 1 : stepIdx;
-  const eta = order.status === 'ACCEPTED' && order.cookingMinutes && order.acceptedAt ? new Date(new Date(order.acceptedAt).getTime() + (order.cookingMinutes + (order.orderType === 'DELIVERY' ? 15 : 0)) * 60000) : null;
+  const eta =
+    order.status === 'ACCEPTED' && order.cookingMinutes && order.acceptedAt
+      ? new Date(
+          new Date(order.acceptedAt).getTime() +
+            (order.cookingMinutes + (order.orderType === 'DELIVERY' ? 15 : 0)) * 60000,
+        )
+      : null;
 
   return (
     <ScreenWrapper backgroundColor={theme.colors.bg}>
@@ -109,7 +121,7 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               {order.orderNo}
             </Typography>
           </View>
-          <Typography mode="heading3" color={closed ? 'red600' : 'gray900'} style={{ marginTop: 10 }}>
+          <Typography mode="heading3" color={closed ? 'red600' : 'gray900'} style={{ marginTop: 16 }}>
             {closed ? st.label : st.desc}
           </Typography>
           {closed ? (
@@ -132,7 +144,11 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 return (
                   <View key={s.status} style={styles.step}>
                     <View style={[styles.stepIcon, done && styles.stepIconDone, cur && styles.stepIconCur]}>
-                      <MaterialCommunityIcons name={s.icon} size={18} color={done ? theme.colors.white : theme.colors.gray400} />
+                      <MaterialCommunityIcons
+                        name={s.icon}
+                        size={18}
+                        color={done ? theme.colors.white : theme.colors.gray400}
+                      />
                     </View>
                     <Typography mode="caption1" color={cur ? 'orange700' : done ? 'gray900' : 'gray400'}>
                       {s.label}
@@ -145,7 +161,7 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           )}
 
           {order.status === 'PENDING' && (
-            <View style={{ marginTop: 14 }}>
+            <View style={{ marginTop: 24 }}>
               <SecondaryButton label="주문 취소" size="md" onPress={cancel} />
             </View>
           )}
@@ -154,7 +170,9 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* 가게 */}
         <View style={styles.card}>
           <View style={styles.topRow}>
-            <Pressable onPress={() => navigation.navigate('StoreDetail', { storeId: order.storeId })} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
+            <Pressable
+              onPress={() => navigation.navigate('StoreDetail', { storeId: order.storeId })}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
               <Typography mode="subtitle1" color="gray900">
                 {order.storeName}
               </Typography>
@@ -169,12 +187,15 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               </Pressable>
             )}
           </View>
-          <View style={{ gap: 10, marginTop: 8 }}>
+          <View style={{ gap: 10, marginTop: 16 }}>
             {order.items.map((it) => (
               <View key={it.id} style={{ gap: 2 }}>
                 <View style={styles.row}>
                   <Typography mode="subtitle3" color="gray900" style={{ flex: 1 }}>
-                    {it.menuName} <Typography mode="body2" color="gray500">× {it.quantity}</Typography>
+                    {it.menuName}{' '}
+                    <Typography mode="body2" color="gray500">
+                      × {it.quantity}
+                    </Typography>
                   </Typography>
                   <Typography mode="subtitle3" color="gray900">
                     {won(it.lineAmount)}
@@ -201,7 +222,9 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             {order.orderType === 'DELIVERY' ? '배달 정보' : '픽업 정보'}
           </Typography>
           <View style={{ gap: 8 }}>
-            {order.orderType === 'DELIVERY' && <Info label="주소" value={`${order.address ?? ''} ${order.addressDetail ?? ''}`.trim()} />}
+            {order.orderType === 'DELIVERY' && (
+              <Info label="주소" value={`${order.address ?? ''} ${order.addressDetail ?? ''}`.trim()} />
+            )}
             <Info label="요청사항" value={order.requestMemo || '없음'} />
             <Info label="결제수단" value={order.cardLabel ?? '카드'} />
             <Info label="주문 시각" value={dateTime(order.createdAt)} />
@@ -237,16 +260,44 @@ const Info: React.FC<{ label: string; value: string }> = ({ label, value }) => (
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 12, paddingBottom: 32 },
-  card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, boxShadow: theme.shadow.card },
+  card: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.lg,
+    padding: 16,
+    boxShadow: theme.shadow.card,
+  },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  tracker: { flexDirection: 'row', marginTop: 18 },
+  tracker: { flexDirection: 'row', marginTop: 24 },
   step: { flex: 1, alignItems: 'center', gap: 6, position: 'relative' },
-  stepIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: theme.colors.gray100, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  stepIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.gray100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
   stepIconDone: { backgroundColor: theme.colors.orange300 },
   stepIconCur: { backgroundColor: theme.colors.primary, boxShadow: theme.shadow.primary },
-  stepLine: { position: 'absolute', top: 17, left: '50%', right: '-50%', height: 2, backgroundColor: theme.colors.gray100 },
+  stepLine: {
+    position: 'absolute',
+    top: 17,
+    left: '50%',
+    right: '-50%',
+    height: 2,
+    backgroundColor: theme.colors.gray100,
+  },
   stepLineDone: { backgroundColor: theme.colors.orange300 },
-  callBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, height: 30, borderRadius: theme.radius.pill, backgroundColor: theme.colors.gray100 },
+  callBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    height: 30,
+    borderRadius: theme.radius.pill,
+    backgroundColor: theme.colors.gray100,
+  },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
   divider: { height: 1, backgroundColor: theme.colors.line },
 });
