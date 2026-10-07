@@ -16,8 +16,15 @@ import { theme } from '@styles';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-const MenuRow: React.FC<{ icon: IconName; label: string; desc?: string; onPress: () => void }> = ({ icon, label, desc, onPress }) => (
-  <Pressable onPress={onPress} style={({ pressed }) => [styles.menuRow, pressed && { backgroundColor: theme.colors.gray50 }]}>
+const MenuRow: React.FC<{ icon: IconName; label: string; desc?: string; onPress: () => void }> = ({
+  icon,
+  label,
+  desc,
+  onPress,
+}) => (
+  <Pressable
+    onPress={onPress}
+    style={({ pressed }) => [styles.menuRow, pressed && { backgroundColor: theme.colors.gray50 }]}>
     <MaterialCommunityIcons name={icon} size={22} color={theme.colors.gray700} />
     <View style={{ flex: 1 }}>
       <Typography mode="body1" color="gray900">
@@ -41,7 +48,13 @@ const MyPageScreen = () => {
   const { confirm } = useDialog();
 
   const handleLogout = async () => {
-    const yes = await confirm({ title: '로그아웃', message1: '로그아웃 할까요?', message2: '장바구니는 비워져요.', confirmText: '로그아웃', cancelText: '취소' });
+    const yes = await confirm({
+      title: '로그아웃',
+      message1: '로그아웃 할까요?',
+      message2: '장바구니는 비워져요.',
+      confirmText: '로그아웃',
+      cancelText: '취소',
+    });
     if (!yes) return;
     clear();
     await logout();
@@ -69,13 +82,32 @@ const MyPageScreen = () => {
         </Pressable>
 
         <View style={styles.card}>
-          <MenuRow icon="map-marker-outline" label="배송지 관리" desc="배달 받을 주소를 등록하고 기본 주소를 정해요" onPress={() => navigation.navigate('AddressList')} />
+          <MenuRow
+            icon="map-marker-outline"
+            label="배송지 관리"
+            desc="배달 받을 주소를 등록하고 기본 주소를 정해요"
+            onPress={() => navigation.navigate('AddressList')}
+          />
           <View style={styles.sep} />
-          <MenuRow icon="credit-card-outline" label="결제수단 관리" desc="카드를 등록하고 기본 결제수단을 정해요" onPress={() => navigation.navigate('PaymentMethodList')} />
+          <MenuRow
+            icon="credit-card-outline"
+            label="결제수단 관리"
+            desc="카드를 등록하고 기본 결제수단을 정해요"
+            onPress={() => navigation.navigate('PaymentMethodList')}
+          />
           <View style={styles.sep} />
-          <MenuRow icon="heart-outline" label="찜한 가게" desc={`${favoriteIds.length}곳`} onPress={() => navigation.navigate('Main', { screen: 'Favorites' })} />
+          <MenuRow
+            icon="heart-outline"
+            label="찜한 가게"
+            desc={`${favoriteIds.length}곳`}
+            onPress={() => navigation.navigate('Main', { screen: 'Favorites' })}
+          />
           <View style={styles.sep} />
-          <MenuRow icon="receipt-text-outline" label="주문내역" onPress={() => navigation.navigate('Main', { screen: 'Orders' })} />
+          <MenuRow
+            icon="receipt-text-outline"
+            label="주문내역"
+            onPress={() => navigation.navigate('Main', { screen: 'Orders' })}
+          />
         </View>
 
         <Pressable onPress={handleLogout} style={styles.logout}>
@@ -93,10 +125,39 @@ const MyPageScreen = () => {
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 12, paddingBottom: 32 },
-  profile: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, boxShadow: theme.shadow.card },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: theme.colors.primary, alignItems: 'center', justifyContent: 'center' },
-  card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, boxShadow: theme.shadow.card },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, marginHorizontal: -16, paddingHorizontal: 16 },
+  profile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.lg,
+    padding: 16,
+    boxShadow: theme.shadow.card,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  card: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: 16,
+    boxShadow: theme.shadow.card,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    // 설명이 있는 줄(제목 24 + 설명 16 + 위아래 여백 12·12 = 64)에 맞춰 고정. 설명 없는 메뉴도 같은 높이에서 제목이 세로 가운데에 온다
+    minHeight: 64,
+    paddingVertical: 12,
+    marginHorizontal: -16,
+    paddingHorizontal: 16,
+  },
   sep: { height: 1, backgroundColor: theme.colors.gray100 },
   logout: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 16 },
 });
