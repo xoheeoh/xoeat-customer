@@ -39,4 +39,22 @@ export const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일'];
 /** 결제수단 카드사 */
 export const CARD_BRANDS = ['신한', '국민', '현대', '삼성', '롯데', '우리', '하나', 'NH농협'];
 
+/** 카드사별 카드 색 (가상 카드 그림). 카드 등록 미리보기와 결제수단 목록이 같이 쓴다 */
+export const CARD_BRAND_COLORS: Record<string, string> = {
+  신한: '#1B4DB1',
+  국민: '#5A4634',
+  현대: '#1C1C1C',
+  삼성: '#1E3A8A',
+  롯데: '#C8102E',
+  우리: '#0A6FB7',
+  하나: '#0B8A6E',
+  NH농협: '#0A7D45',
+};
+
+/** 목록에 없는 카드사일 때 쓰는 색 (theme.colors.gray700 과 같은 진회색) */
+export const CARD_BRAND_FALLBACK_COLOR = '#3D3835';
+
+/** 카드사 이름으로 카드 색을 찾는다 */
+export const cardBrandColor = (brand: string) => CARD_BRAND_COLORS[brand] ?? CARD_BRAND_FALLBACK_COLOR;
+
 export const REQUEST_PRESETS = ['문 앞에 놓아주세요', '벨 누르지 말아주세요', '수저·포크는 빼주세요', '도착하면 전화 주세요'];

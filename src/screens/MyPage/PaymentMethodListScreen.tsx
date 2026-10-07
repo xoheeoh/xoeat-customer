@@ -10,22 +10,11 @@ import type { PaymentMethod } from '@typ/domain';
 import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from '@apis/customerApi';
 import { isOk } from '@apis/client';
 import { useDialog } from '@contexts/DialogContext';
+import { cardBrandColor } from '@dt/constants';
 import { Badge, InfoBox, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typography } from '@components/common';
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PaymentMethodList'>;
-
-/** 카드사별 카드 색 (가상 카드 그림) */
-const BRAND_COLORS: Record<string, string> = {
-  신한: '#1B4DB1',
-  국민: '#5A4634',
-  현대: '#1C1C1C',
-  삼성: '#1E3A8A',
-  롯데: '#C8102E',
-  우리: '#0A6FB7',
-  하나: '#0B8A6E',
-  NH농협: '#0A7D45',
-};
 
 /**
  * 결제수단 목록.
@@ -80,7 +69,7 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <Pressable onPress={() => (selectMode ? pickForOrder(item) : undefined)} style={[styles.cardRow, selectMode && isPicked(item) && styles.cardRowOn]}>
-              <View style={[styles.cardArt, { backgroundColor: BRAND_COLORS[item.brand] ?? theme.colors.gray700 }]}>
+              <View style={[styles.cardArt, { backgroundColor: cardBrandColor(item.brand) }]}>
                 <Typography mode="caption2" color="white">
                   {item.brand}
                 </Typography>
