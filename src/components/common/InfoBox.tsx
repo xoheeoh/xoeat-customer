@@ -10,7 +10,7 @@ type InfoBoxTone = 'gray' | 'yellow';
 interface InfoBoxProps {
   /** 안내 문구. 문자열이면 기본 글자 모양으로, 직접 꾸민 요소를 넘겨도 된다 */
   children: ReactNode;
-  /** gray: 일반 안내 / yellow: 주의가 필요한 안내 */
+  /** yellow: 기본. 이 앱의 안내는 모두 노란 상자로 통일한다 / gray: 눈에 덜 띄어야 할 때만 */
   tone?: InfoBoxTone;
   /** 아이콘 이름 (MaterialCommunityIcons). 기본은 정보 아이콘 */
   icon?: ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -30,7 +30,7 @@ const TONES: Record<InfoBoxTone, { bg: keyof typeof theme.colors; icon: keyof ty
  * 안내 상자: 연한 배경 위에 [아이콘 + 짧은 안내 문구].
  * 아이콘은 첫 줄 글자 높이에 맞춰 여러 줄 문구에서도 위로 뜨지 않는다.
  */
-const InfoBox: React.FC<InfoBoxProps> = ({ children, tone = 'gray', icon = 'information-outline', style }) => {
+const InfoBox: React.FC<InfoBoxProps> = ({ children, tone = 'yellow', icon = 'information-outline', style }) => {
   const colors = TONES[tone];
 
   return (

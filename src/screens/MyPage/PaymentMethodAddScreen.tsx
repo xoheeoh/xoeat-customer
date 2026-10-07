@@ -147,7 +147,7 @@ const PaymentMethodAddScreen: React.FC<Props> = ({ navigation }) => {
           }
         />
         {/* 줄바꿈(\n)은 하나의 문자열 안에 넣는다. JSX 에서 줄을 나누면 빈칸으로 합쳐지고, {'\n'} 을 끼우면 문구가 조각나 InfoBox 의 작은 글씨 스타일이 빠진다 */}
-        <InfoBox tone="yellow" icon="shield-check-outline">
+        <InfoBox icon="shield-check-outline">
           {'실제 PG 연동 자리예요. 데모에서는 카드번호 형식(Luhn)만 검사하고 끝 4자리와 유효기간만 저장해요.\nCVC·비밀번호는 받지 않아요.'}
         </InfoBox>
       </KeyboardAwareScrollView>
