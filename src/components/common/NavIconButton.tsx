@@ -18,7 +18,12 @@ interface NavIconButtonProps {
   iconColor?: string;
 }
 
-const NavIconButton: React.FC<NavIconButtonProps> = ({ icon, onPress, accessibilityLabel, iconColor = theme.colors.gray800 }) => (
+const NavIconButton: React.FC<NavIconButtonProps> = ({
+  icon,
+  onPress,
+  accessibilityLabel,
+  iconColor = theme.colors.gray800,
+}) => (
   <Pressable
     accessibilityRole="button"
     accessibilityLabel={accessibilityLabel}
@@ -33,11 +38,11 @@ const styles = StyleSheet.create({
     width: NAV_ICON_BUTTON_SIZE,
     height: NAV_ICON_BUTTON_SIZE,
     borderRadius: NAV_ICON_BUTTON_SIZE / 2,
-    backgroundColor: theme.colors.gray100,
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pressed: { backgroundColor: theme.colors.gray150 },
+  pressed: { backgroundColor: theme.colors.gray50 },
 });
 
 export default NavIconButton;
