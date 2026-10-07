@@ -10,7 +10,7 @@ import type { Address } from '@typ/domain';
 import { deleteAddress, getAddresses, setDefaultAddress } from '@apis/customerApi';
 import { isOk } from '@apis/client';
 import { useDialog } from '@contexts/DialogContext';
-import { Badge, PrimaryButton, ScreenWrapper, SkeletonList, Typography } from '@components/common';
+import { Badge, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typography } from '@components/common';
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddressList'>;
@@ -100,7 +100,8 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
                   </View>
                 )}
               </View>
-              {selectMode && <MaterialCommunityIcons name={item.isDefault ? 'radiobox-marked' : 'radiobox-blank'} size={22} color={item.isDefault ? theme.colors.primary : theme.colors.gray300} />}
+              {/* 공통 라디오 모양. 줄이 위쪽 정렬이라 첫 줄 글자(줄높이 24)와 가운데가 맞도록 1px 내린다 */}
+              {selectMode && <RadioIndicator selected={item.isDefault} style={styles.radio} />}
             </Pressable>
           )}
           ListEmptyComponent={
@@ -121,6 +122,7 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   list: { padding: 20, flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14 },
+  radio: { marginTop: 1 },
   actions: { flexDirection: 'row', gap: 14, marginTop: 6 },
   sep: { height: 1, backgroundColor: theme.colors.gray100 },
   empty: { alignItems: 'center', gap: 12, paddingVertical: 60 },
