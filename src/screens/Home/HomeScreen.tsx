@@ -52,7 +52,9 @@ const HomeScreen = () => {
   const filtered = useMemo(() => {
     if (!stores) return [];
     const q = query.trim();
-    return stores.filter((s) => (category === 'ALL' || s.categoryCd === category) && (!q || s.name.includes(q) || s.intro.includes(q)));
+    // 검색어는 가게 이름 · 소개 · 메뉴 이름 중 하나라도 포함하면 걸린다
+    const matches = (s: Store) => s.name.includes(q) || s.intro.includes(q) || (s.menuNames ?? []).some((m) => m.includes(q));
+    return stores.filter((s) => (category === 'ALL' || s.categoryCd === category) && (!q || matches(s)));
   }, [stores, category, query]);
 
   const toggleFavorite = async (store: Store) => {

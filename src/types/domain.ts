@@ -60,6 +60,8 @@ export interface Store {
   /** 영업시간·일시중지를 종합한 "지금 주문 가능" */
   isOpenNow: boolean;
   isFavorite: boolean;
+  /** 메뉴 이름들. 홈 검색에서 메뉴명으로 가게를 찾을 때 쓴다 (가게 목록 조회에서만 채워진다) */
+  menuNames?: string[];
 }
 
 export interface Option {
