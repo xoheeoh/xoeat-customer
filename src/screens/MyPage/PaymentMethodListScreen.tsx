@@ -27,9 +27,16 @@ const BRAND_COLORS: Record<string, string> = {
   NH농협: '#0A7D45',
 };
 
-/** 결제수단 목록. selectMode 면 누르는 카드를 기본 결제수단으로 지정하고 돌아간다 */
+/**
+ * 결제수단 목록.
+ * - 관리 모드(마이페이지): 기본 결제수단 지정·삭제.
+ * - 선택 모드(주문 화면의 "변경"): 누른 카드를 이번 주문의 결제수단으로만 돌려준다. 기본 결제수단은 바꾸지 않는다.
+ */
 const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
   const selectMode = route.params?.selectMode ?? false;
+  /** 선택 모드에서 강조할 카드. 주문 화면이 넘겨준 현재 선택, 없으면 기본 카드 */
+  const selectedId = route.params?.selectedId;
+  const isPicked = (m: PaymentMethod) => (selectedId ? m.id === selectedId : m.isDefault);
   const { confirm } = useDialog();
   const [list, setList] = useState<PaymentMethod[] | null>(null);
 
@@ -46,9 +53,11 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
     setList((prev) => (prev ?? []).map((x) => ({ ...x, isDefault: x.id === m.id })));
-    if (selectMode) navigation.goBack();
-    else Toast.show({ type: 'success', text1: '기본 결제수단으로 설정했어요' });
+    Toast.show({ type: 'success', text1: '기본 결제수단으로 설정했어요' });
   };
+
+  /** 선택 모드: 고른 카드를 주문 화면에 넘기며 돌아간다 (기본 결제수단은 그대로) */
+  const pickForOrder = (m: PaymentMethod) => navigation.popTo('Checkout', { methodId: m.id }, { merge: true });
 
   const remove = async (m: PaymentMethod) => {
     const yes = await confirm({ title: '카드 삭제', message1: `${m.brand}카드 **** ${m.last4}를 삭제할까요?`, confirmText: '삭제', cancelText: '취소' });
@@ -70,7 +79,7 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <Pressable onPress={() => (selectMode ? makeDefault(item) : undefined)} style={[styles.cardRow, selectMode && item.isDefault && styles.cardRowOn]}>
+            <Pressable onPress={() => (selectMode ? pickForOrder(item) : undefined)} style={[styles.cardRow, selectMode && isPicked(item) && styles.cardRowOn]}>
               <View style={[styles.cardArt, { backgroundColor: BRAND_COLORS[item.brand] ?? theme.colors.gray700 }]}>
                 <Typography mode="caption2" color="white">
                   {item.brand}
@@ -84,7 +93,8 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Typography mode="subtitle2" color="gray900">
                     {item.brand}카드
                   </Typography>
-                  {item.isDefault && <Badge label="기본" tone="orange" />}
+                  {/* 선택된 줄은 배경이 배지와 같은 연한 주황이라 배지가 묻힌다. 그때만 배지 배경을 흰색으로 */}
+                  {item.isDefault && <Badge label="기본" tone="orange" style={selectMode && isPicked(item) ? styles.badgeOnPicked : undefined} />}
                 </View>
                 <Typography mode="caption1" color="gray500">
                   **** **** **** {item.last4} · {item.expiry}
@@ -108,7 +118,7 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
                 )}
               </View>
               {/* 공통 라디오 모양 */}
-              {selectMode && <RadioIndicator selected={item.isDefault} />}
+              {selectMode && <RadioIndicator selected={isPicked(item)} />}
             </Pressable>
           )}
           ListEmptyComponent={
@@ -135,6 +145,7 @@ const styles = StyleSheet.create({
   list: { padding: 20, gap: 10, flexGrow: 1 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.line },
   cardRowOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
+  badgeOnPicked: { backgroundColor: theme.colors.white },
   cardArt: { width: 72, height: 46, borderRadius: 8, padding: 7, justifyContent: 'space-between' },
   actions: { flexDirection: 'row', gap: 14, marginTop: 6 },
   empty: { alignItems: 'center', gap: 12, paddingVertical: 40 },
