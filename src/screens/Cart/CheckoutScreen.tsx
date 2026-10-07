@@ -16,7 +16,7 @@ import { useDialog } from '@contexts/DialogContext';
 import { REQUEST_PRESETS } from '@dt/constants';
 import { phone as fmtPhone, won } from '@utils/formatter';
 import { resetToOrderComplete } from '@utils/navigationHelpers';
-import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, BottomSheet, KeyboardAwareScrollView, ScreenWrapper, Textarea, Typography } from '@components/common';
+import { Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, BottomSheet, KeyboardAwareScrollView, ScreenWrapper, Textarea, Typography } from '@components/common';
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Checkout'>;
@@ -194,15 +194,12 @@ const CheckoutScreen: React.FC<Props> = ({ navigation, route }) => {
               <View style={styles.cardChip}>
                 <MaterialCommunityIcons name="credit-card-outline" size={18} color={theme.colors.white} />
               </View>
-              <View>
+              {/* 별칭은 카드번호 옆 배지로. 별칭 유무와 상관없이 한 줄이라 카드를 바꿔도 높이·아이콘 위치가 그대로다 */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
                 <Typography mode="body1" color="gray900">
                   {method.brand}카드 **** {method.last4}
                 </Typography>
-                {!!method.alias && (
-                  <Typography mode="caption1" color="gray500">
-                    {method.alias}
-                  </Typography>
-                )}
+                {!!method.alias && <Badge label={method.alias} tone="gray" />}
               </View>
             </View>
           ) : (
