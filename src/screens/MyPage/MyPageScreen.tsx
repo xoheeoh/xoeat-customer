@@ -12,7 +12,7 @@ import { useDialog } from '@contexts/DialogContext';
 import { phone as fmtPhone } from '@utils/formatter';
 import { goToLogin } from '@utils/navigationHelpers';
 import { ScreenWrapper, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -124,7 +124,7 @@ const MyPageScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 12, paddingBottom: 32 },
+  container: { paddingHorizontal: 16, paddingTop: screen.topCard, gap: 12, paddingBottom: 32 },
   profile: {
     flexDirection: 'row',
     alignItems: 'center',

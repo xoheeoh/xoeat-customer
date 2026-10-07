@@ -17,7 +17,7 @@ import { REQUEST_PRESETS } from '@dt/constants';
 import { phone as fmtPhone, won } from '@utils/formatter';
 import { resetToOrderComplete } from '@utils/navigationHelpers';
 import { Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, BottomSheet, KeyboardAwareScrollView, ScreenWrapper, Textarea, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Checkout'>;
 
@@ -287,7 +287,7 @@ const Row: React.FC<{ label: string; value: string; strong?: boolean }> = ({ lab
 );
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 12 },
+  container: { paddingHorizontal: 16, paddingTop: screen.topCard, paddingBottom: 16, gap: 12 },
   card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, gap: 12, boxShadow: theme.shadow.card },
   cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pick: { paddingHorizontal: 12, height: 32, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: theme.colors.line, alignItems: 'center', justifyContent: 'center' },

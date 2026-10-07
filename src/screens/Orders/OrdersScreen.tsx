@@ -15,7 +15,7 @@ import { useDialog } from '@contexts/DialogContext';
 import { ORDER_STATUS, ORDER_TYPE } from '@dt/constants';
 import { dateTime, won } from '@utils/formatter';
 import { Badge, ScreenWrapper, SecondaryButton, SkeletonList, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 const ACTIVE: Order['status'][] = ['PENDING', 'ACCEPTED', 'READY', 'DELIVERING'];
 
@@ -162,7 +162,7 @@ const OrdersScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 10, flexGrow: 1 },
+  list: { paddingHorizontal: 16, paddingTop: screen.topForm, paddingBottom: 16, gap: 10, flexGrow: 1 },
   card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, gap: 6, boxShadow: theme.shadow.card },
   cardActive: { borderWidth: 1.5, borderColor: theme.colors.orange300 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

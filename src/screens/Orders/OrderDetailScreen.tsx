@@ -15,7 +15,7 @@ import { ORDER_STATUS, ORDER_TYPE } from '@dt/constants';
 import { loadingController } from '@utils/loadingController';
 import { dateTime, timeOnly, won } from '@utils/formatter';
 import { Badge, ScreenWrapper, SecondaryButton, SkeletonList, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OrderDetail'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -260,7 +260,7 @@ const Info: React.FC<{ label: string; value: string }> = ({ label, value }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 12, paddingBottom: 32 },
+  container: { paddingHorizontal: 16, paddingTop: screen.topCard, gap: 12, paddingBottom: 32 },
   card: {
     backgroundColor: theme.colors.white,
     borderRadius: theme.radius.lg,

@@ -10,7 +10,7 @@ import { useSession } from '@contexts/SessionContext';
 import { useDialog } from '@contexts/DialogContext';
 import { loadingController } from '@utils/loadingController';
 import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, CheckBox, InfoBox, KeyboardAwareScrollView, ScreenWrapper, TextField, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddressEdit'>;
 const LABELS = ['집', '회사', '기타'];
@@ -93,7 +93,7 @@ const AddressEditScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 16 },
+  container: { paddingHorizontal: 20, paddingTop: screen.topForm, paddingBottom: 20, gap: 16 },
   labels: { flexDirection: 'row', gap: 8 },
   labelChip: { flex: 1, height: 44, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.line, alignItems: 'center', justifyContent: 'center' },
   labelChipOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },

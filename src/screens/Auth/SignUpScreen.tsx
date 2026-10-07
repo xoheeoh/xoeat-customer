@@ -10,6 +10,7 @@ import { loadingController } from '@utils/loadingController';
 import { goToMain } from '@utils/navigationHelpers';
 import { phone as fmtPhone } from '@utils/formatter';
 import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, CheckBox, KeyboardAwareScrollView, ScreenWrapper, TextField, Typography } from '@components/common';
+import { screen } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -126,7 +127,7 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 16 },
+  container: { paddingHorizontal: 20, paddingTop: screen.topForm, paddingBottom: 20, gap: 16 },
   terms: { marginTop: 8 },
 });
 

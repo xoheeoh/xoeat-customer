@@ -11,7 +11,7 @@ import { deleteAddress, getAddresses, setDefaultAddress } from '@apis/customerAp
 import { isOk } from '@apis/client';
 import { useDialog } from '@contexts/DialogContext';
 import { Badge, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddressList'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -165,7 +165,7 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  list: { padding: 20, flexGrow: 1 },
+  list: { paddingHorizontal: 20, paddingTop: screen.topCard, paddingBottom: 20, flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14 },
   radio: { marginTop: 1 },
   labelIcon: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },

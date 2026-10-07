@@ -11,7 +11,7 @@ import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
 import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, InfoBox, ScreenWrapper, TextButton, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 import { CartItemEditSheet } from './CartItemEditSheet';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Cart'>;
@@ -200,7 +200,7 @@ const Row: React.FC<{ label: string; value: string; strong?: boolean }> = ({ lab
 );
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 12 },
+  container: { paddingHorizontal: 16, paddingTop: screen.topCard, gap: 12 },
   card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, gap: 12, boxShadow: theme.shadow.card },
   // 배달/포장 선택 버튼. 이전에 주문 화면에 있던 모양 그대로
   typeRow: { flexDirection: 'row', gap: 10 },
