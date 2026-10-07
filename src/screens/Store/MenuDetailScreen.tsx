@@ -12,7 +12,7 @@ import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
 import { MenuOptionGroups, toCartItem, useMenuOptionSelection } from '@components/store';
-import { Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, NavIconButton, ScreenWrapper, SkeletonList, Typography } from '@components/common';
+import { AdultBadge, Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, NavIconButton, ScreenWrapper, SkeletonList, Typography } from '@components/common';
 import { theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuDetail'>;
@@ -131,7 +131,8 @@ const MenuDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               <Typography mode="heading2" color="gray900" style={{ flexShrink: 1 }}>
                 {menu.name}
               </Typography>
-              {menu.adultOnly && <Badge label="19" tone="red" size="medium" />}
+              {/* 큰 제목(heading2) 옆이라 마크도 한 단계 크게 */}
+              {menu.adultOnly && <AdultBadge size={24} style={{ transform: [{ translateY: -1 }] }} />}
               {soldOut && <Badge label="품절" tone="gray" size="medium" />}
             </View>
             {!!menu.description && (
