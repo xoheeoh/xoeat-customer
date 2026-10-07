@@ -161,7 +161,7 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           )}
 
           {order.status === 'PENDING' && (
-            <View style={{ marginTop: 24 }}>
+            <View style={{ marginTop: 12 }}>
               <SecondaryButton label="주문 취소" size="md" onPress={cancel} />
             </View>
           )}
@@ -170,10 +170,11 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         {/* 가게 */}
         <View style={styles.card}>
           <View style={styles.topRow}>
+            {/* 누르는 범위는 "가게명 >"까지. flex: 1 을 주면 전화 버튼 앞 빈 공간까지 눌린다. 이름이 길면 전화 버튼을 밀지 않고 줄어든다 */}
             <Pressable
               onPress={() => navigation.navigate('StoreDetail', { storeId: order.storeId })}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
-              <Typography mode="subtitle1" color="gray900">
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1, marginRight: 12 }}>
+              <Typography mode="subtitle1" color="gray900" numberOfLines={1} style={{ flexShrink: 1 }}>
                 {order.storeName}
               </Typography>
               <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray400} />
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     boxShadow: theme.shadow.card,
   },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  tracker: { flexDirection: 'row', marginTop: 24 },
+  tracker: { flexDirection: 'row', marginTop: 24, marginBottom: 12 },
   step: { flex: 1, alignItems: 'center', gap: 6, position: 'relative' },
   stepIcon: {
     width: 36,
