@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import type { RootStackParamList } from '@typ/navigation';
-import type { Store } from '@typ/domain';
+import type { CartItem, Store } from '@typ/domain';
 import { getStore } from '@apis/catalogApi';
 import { isOk } from '@apis/client';
 import { useCart } from '@contexts/CartContext';
@@ -12,14 +12,17 @@ import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
 import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, InfoBox, ScreenWrapper, TextButton, Typography } from '@components/common';
 import { theme } from '@styles';
+import { CartItemEditSheet } from './CartItemEditSheet';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Cart'>;
 
-/** 장바구니: 수량 변경·삭제, 금액 합계, 최소주문금액 안내 */
+/** 장바구니: 수량 변경·삭제, 메뉴를 눌러 옵션 수정(바텀시트), 금액 합계, 최소주문금액 안내 */
 const CartScreen: React.FC<Props> = ({ navigation }) => {
   const { cart, itemsAmount, setQuantity, remove, clear } = useCart();
   const { confirm } = useDialog();
   const [store, setStore] = useState<Store | null>(null);
+  /** 옵션을 수정 중인 항목. null 이면 시트 닫힘 */
+  const [editing, setEditing] = useState<CartItem | null>(null);
 
   useEffect(() => {
     if (cart) getStore(cart.storeId).then((res) => isOk(res) && res.store && setStore(res.store));
@@ -52,11 +55,11 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.card}>
           <View style={styles.storeRow}>
             <Pressable onPress={() => navigation.navigate('StoreDetail', { storeId: cart.storeId })} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
-              <MaterialCommunityIcons name="storefront-outline" size={18} color={theme.colors.gray700} />
+              <MaterialCommunityIcons name="storefront-outline" size={18} color={theme.colors.gray700} style={styles.inlineIcon} />
               <Typography mode="subtitle2" color="gray900">
                 {cart.storeName}
               </Typography>
-              <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray400} />
+              <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray400} style={styles.inlineIcon} />
             </Pressable>
             <Pressable onPress={clearAll} hitSlop={8}>
               <Typography mode="caption1" color="gray500">
@@ -67,10 +70,14 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
 
           {cart.items.map((item, i) => (
             <View key={item.key} style={[styles.item, i > 0 && styles.itemBorder]}>
-              <View style={{ flex: 1, gap: 4 }}>
-                <Typography mode="subtitle2" color="gray900">
-                  {item.menuName}
-                </Typography>
+              {/* 메뉴 이름·옵션 영역을 누르면 옵션 수정 시트 */}
+              <Pressable onPress={() => setEditing(item)} style={{ flex: 1, gap: 4 }} accessibilityRole="button" accessibilityLabel={`${item.menuName} 옵션 변경`}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Typography mode="subtitle2" color="gray900" style={{ flexShrink: 1 }}>
+                    {item.menuName}
+                  </Typography>
+                  <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray400} style={styles.inlineIcon} />
+                </View>
                 {item.options.length > 0 && (
                   <Typography mode="caption1" color="gray500">
                     {item.options.map((o) => `${o.name}${o.price ? ` +${won(o.price)}` : ''}`).join(' · ')}
@@ -79,7 +86,7 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
                 <Typography mode="subtitle3" color="gray900">
                   {won(item.unitPrice * item.quantity)}
                 </Typography>
-              </View>
+              </Pressable>
               <View style={{ alignItems: 'flex-end', gap: 8 }}>
                 <Pressable onPress={() => remove(item.key)} hitSlop={8}>
                   <MaterialCommunityIcons name="close" size={18} color={theme.colors.gray400} />
@@ -122,6 +129,8 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
       </ScrollView>
 
       <BottomBtnBox label={`${won(itemsAmount)} 주문하기`} onPress={() => navigation.navigate('Checkout')} disabled={!store || !store.isOpenNow} backgroundColor={theme.colors.bg} />
+
+      <CartItemEditSheet item={editing} onClose={() => setEditing(null)} />
     </ScreenWrapper>
   );
 };
@@ -141,6 +150,9 @@ const styles = StyleSheet.create({
   container: { padding: 16, gap: 12 },
   card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, gap: 12, boxShadow: theme.shadow.card },
   storeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  // 글자(subtitle2, 줄높이 24) 옆에 놓는 18px 아이콘. 상자 기준으로는 가운데지만 아이콘 글리프가 상자 안에서 살짝 아래에 그려져 1px 올린다.
+  // margin 으로 올리면 가운데 정렬 때문에 절반만 움직이므로 위치 이동(translateY)을 쓴다
+  inlineIcon: { transform: [{ translateY: -1 }] },
   item: { flexDirection: 'row', gap: 12, paddingVertical: 4 },
   itemBorder: { borderTopWidth: 1, borderTopColor: theme.colors.gray100, paddingTop: 12 },
   stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: theme.colors.line, borderRadius: theme.radius.sm },

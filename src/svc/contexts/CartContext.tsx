@@ -12,6 +12,8 @@ type CartContextType = {
   /** 담기. 다른 가게 상품이 있으면 false 를 돌려주고 담지 않는다 (화면이 교체 여부를 묻는다) */
   add: (store: { id: string; name: string }, item: CartItem, replace?: boolean) => boolean;
   setQuantity: (key: string, quantity: number) => void;
+  /** 담긴 항목의 옵션·수량을 바꾼다 (key 가 바뀜). 바꾼 결과가 이미 담긴 다른 항목과 같은 조합이면 그쪽에 수량을 합친다 */
+  replace: (key: string, item: CartItem) => void;
   remove: (key: string) => void;
   clear: () => void;
 };
@@ -69,6 +71,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const replace = useCallback((key: string, item: CartItem) => {
+    setCart((prev) => {
+      if (!prev) return prev;
+      const duplicate = prev.items.find((i) => i.key !== key && i.key === item.key);
+      const items = duplicate
+        ? prev.items.filter((i) => i.key !== key).map((i) => (i.key === item.key ? { ...i, quantity: Math.min(99, i.quantity + item.quantity) } : i))
+        : prev.items.map((i) => (i.key === key ? item : i)); // 같은 자리에 그대로 둔다
+      return { ...prev, items };
+    });
+  }, []);
+
   const remove = useCallback((key: string) => {
     setCart((prev) => {
       if (!prev) return prev;
@@ -82,6 +95,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const count = useMemo(() => cart?.items.reduce((s, i) => s + i.quantity, 0) ?? 0, [cart]);
   const itemsAmount = useMemo(() => cart?.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0) ?? 0, [cart]);
 
-  const value = useMemo<CartContextType>(() => ({ cart, count, itemsAmount, add, setQuantity, remove, clear }), [cart, count, itemsAmount, add, setQuantity, remove, clear]);
+  const value = useMemo<CartContextType>(
+    () => ({ cart, count, itemsAmount, add, setQuantity, replace, remove, clear }),
+    [cart, count, itemsAmount, add, setQuantity, replace, remove, clear],
+  );
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
