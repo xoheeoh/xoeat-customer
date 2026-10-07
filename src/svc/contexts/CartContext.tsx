@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { getData, storeData } from '@storages/asyncStorage';
-import type { Cart, CartItem } from '@typ/domain';
+import type { Cart, CartItem, OrderType } from '@typ/domain';
 
 type CartContextType = {
   cart: Cart | null;
@@ -9,6 +9,9 @@ type CartContextType = {
   count: number;
   /** 상품 금액 합 */
   itemsAmount: number;
+  /** 배달/포장. 장바구니 화면에서 고르고 주문 화면이 그대로 쓴다 */
+  orderType: OrderType;
+  setOrderType: (type: OrderType) => void;
   /** 담기. 다른 가게 상품이 있으면 false 를 돌려주고 담지 않는다 (화면이 교체 여부를 묻는다) */
   add: (store: { id: string; name: string }, item: CartItem, replace?: boolean) => boolean;
   setQuantity: (key: string, quantity: number) => void;
@@ -90,14 +93,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setOrderType = useCallback((type: OrderType) => {
+    setCart((prev) => (prev && prev.orderType !== type ? { ...prev, orderType: type } : prev));
+  }, []);
+
   const clear = useCallback(() => setCart(null), []);
 
   const count = useMemo(() => cart?.items.reduce((s, i) => s + i.quantity, 0) ?? 0, [cart]);
   const itemsAmount = useMemo(() => cart?.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0) ?? 0, [cart]);
 
+  const orderType = cart?.orderType ?? 'DELIVERY';
+
   const value = useMemo<CartContextType>(
-    () => ({ cart, count, itemsAmount, add, setQuantity, replace, remove, clear }),
-    [cart, count, itemsAmount, add, setQuantity, replace, remove, clear],
+    () => ({ cart, count, itemsAmount, orderType, setOrderType, add, setQuantity, replace, remove, clear }),
+    [cart, count, itemsAmount, orderType, setOrderType, add, setQuantity, replace, remove, clear],
   );
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
