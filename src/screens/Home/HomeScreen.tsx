@@ -91,11 +91,13 @@ const HomeScreen = () => {
     <ScreenWrapper hasHeader={false} backgroundColor="white" inTab>
       {/* 주소 */}
       <Pressable style={styles.addressBar} onPress={() => navigation.navigate('AddressList')}>
-        <MaterialCommunityIcons name="map-marker" size={20} color={theme.colors.primary} />
+        {/* 핀 그림은 끝이 뾰족해 무게가 위에 몰리고, 글리프 자체도 상자 안에서 살짝 아래에 그려져 낮아 보인다. 1px 올린다 */}
+        <MaterialCommunityIcons name="map-marker" size={20} color={theme.colors.primary} style={{ transform: [{ translateY: -1 }] }} />
         <Typography mode="subtitle2" color="gray900" numberOfLines={1} style={{ flexShrink: 1 }}>
           {address ? `${address.roadAddress} ${address.detail}`.trim() : '배달 받을 주소를 등록해 주세요'}
         </Typography>
-        <MaterialCommunityIcons name="chevron-down" size={20} color={theme.colors.gray500} />
+        {/* 아래 화살표도 글리프가 상자 안에서 아래쪽에 그려져 낮아 보인다. 핀과 같이 1px 올린다 */}
+        <MaterialCommunityIcons name="chevron-down" size={20} color={theme.colors.gray500} style={{ transform: [{ translateY: -1 }] }} />
       </Pressable>
 
       <SectionList
@@ -200,7 +202,8 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  addressBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 12 },
+  // 홈의 상단 바. 다른 화면의 공통 Header 와 같은 높이(56)라 그 아래 첫 카드까지의 간격도 같다
+  addressBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, height: 56 },
   list: { paddingBottom: 16 },
   hero: { marginHorizontal: 20, marginBottom: 8, padding: 20, borderRadius: theme.radius.xl, backgroundColor: theme.colors.primary, gap: 16 },
   // 테두리는 평소 투명으로 두고 포커스 때 색만 바꾼다 (두께가 생겼다 없어지면 크기가 들썩인다)
