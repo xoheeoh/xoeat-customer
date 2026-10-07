@@ -16,10 +16,14 @@ import { theme } from '@styles';
 type Props = NativeStackScreenProps<RootStackParamList, 'AddressList'>;
 
 /**
- * 배송지 목록. selectMode 면 누르는 주소를 기본 배송지로 지정하고 돌아간다 (주문 화면이 기본 주소를 다시 읽는다).
+ * 배송지 목록.
+ * - 관리 모드(마이페이지·홈): 기본 배송지 지정·수정·삭제.
+ * - 선택 모드(주문 화면의 "변경"): 누른 주소를 이번 주문의 배달 주소로만 돌려준다. 기본 배송지는 바꾸지 않는다.
  */
 const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
   const selectMode = route.params?.selectMode ?? false;
+  /** 선택 모드에서 라디오가 켜질 주소. 주문 화면이 넘겨준 현재 선택, 없으면 기본 주소 */
+  const selectedId = route.params?.selectedId;
   const { confirm } = useDialog();
   const [list, setList] = useState<Address[] | null>(null);
 
@@ -36,9 +40,11 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
     setList((prev) => (prev ?? []).map((x) => ({ ...x, isDefault: x.id === a.id })));
-    if (selectMode) navigation.goBack();
-    else Toast.show({ type: 'success', text1: '기본 배송지로 설정했어요' });
+    Toast.show({ type: 'success', text1: '기본 배송지로 설정했어요' });
   };
+
+  /** 선택 모드: 고른 주소를 주문 화면에 넘기며 돌아간다 (기본 배송지는 그대로) */
+  const pickForOrder = (a: Address) => navigation.popTo('Checkout', { addressId: a.id }, { merge: true });
 
   const remove = async (a: Address) => {
     const yes = await confirm({ title: '배송지 삭제', message1: `'${a.label || a.roadAddress}'을(를) 삭제할까요?`, confirmText: '삭제', cancelText: '취소' });
@@ -61,7 +67,7 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={styles.sep} />}
           renderItem={({ item }) => (
-            <Pressable onPress={() => (selectMode ? makeDefault(item) : navigation.navigate('AddressEdit', { addressId: item.id }))} style={styles.row}>
+            <Pressable onPress={() => (selectMode ? pickForOrder(item) : navigation.navigate('AddressEdit', { addressId: item.id }))} style={styles.row}>
               <MaterialCommunityIcons name={item.label === '회사' ? 'office-building-outline' : 'home-outline'} size={22} color={item.isDefault ? theme.colors.primary : theme.colors.gray500} />
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -101,7 +107,7 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
                 )}
               </View>
               {/* 공통 라디오 모양. 줄이 위쪽 정렬이라 첫 줄 글자(줄높이 24)와 가운데가 맞도록 1px 내린다 */}
-              {selectMode && <RadioIndicator selected={item.isDefault} style={styles.radio} />}
+              {selectMode && <RadioIndicator selected={selectedId ? item.id === selectedId : item.isDefault} style={styles.radio} />}
             </Pressable>
           )}
           ListEmptyComponent={
