@@ -36,7 +36,9 @@ const Badge: React.FC<BadgeProps> = ({ label, tone = 'gray', size = 'small', sty
 };
 
 const styles = StyleSheet.create({
-  base: { alignSelf: 'flex-start', alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
+  // alignSelf center: 가로 줄 안에서 옆 글자와 세로 가운데가 맞는다 (배지는 글자보다 키가 작아 위쪽 정렬이면 위로 붙어 보인다).
+  // 세로로 쌓는 곳에 두면 가로 가운데로 가므로, 그때는 style 로 'flex-start' 를 넘긴다
+  base: { alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
   small: { height: 20, paddingHorizontal: 7 },
   medium: { height: 26, paddingHorizontal: 10 },
   smallText: { fontSize: 11, lineHeight: 16, letterSpacing: -0.22 },
