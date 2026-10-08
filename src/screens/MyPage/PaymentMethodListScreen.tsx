@@ -83,7 +83,8 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
                     {item.brand}카드
                   </Typography>
                   {/* 선택된 줄은 배경이 배지와 같은 연한 주황이라 배지가 묻힌다. 그때만 배지 배경을 흰색으로 */}
-                  {item.isDefault && <Badge label="기본" tone="orange" style={selectMode && isPicked(item) ? styles.badgeOnPicked : undefined} />}
+                  {/* 상자 기준으로는 가운데지만 한글 글자가 줄 상자 안에서 살짝 위에 그려져 배지가 낮아 보인다. 1px 올린다 */}
+                  {item.isDefault && <Badge label="기본" tone="orange" style={[styles.badge, selectMode && isPicked(item) && styles.badgeOnPicked]} />}
                 </View>
                 <Typography mode="caption1" color="gray500">
                   **** **** **** {item.last4} · {item.expiry}
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingTop: screen.topCard, paddingBottom: 20, gap: 10, flexGrow: 1 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.line },
   cardRowOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
+  badge: { transform: [{ translateY: -1 }] },
   badgeOnPicked: { backgroundColor: theme.colors.white },
   cardArt: { width: 72, height: 46, borderRadius: 8, padding: 7, justifyContent: 'space-between' },
   actions: { flexDirection: 'row', gap: 14, marginTop: 6 },
