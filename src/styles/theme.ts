@@ -17,6 +17,8 @@ export const screen = {
   topCard: 0,
   /** 하단 고정 버튼이 없는 화면의 아래 여백. 안전 영역 위에 더한다. 버튼이 있는 화면은 KeyboardAwareScrollView 가 따로 계산한다 */
   bottom: 16,
+  /** 화면 맨 위에 꽉 차게 놓이는 대표 이미지 높이 (가게 상세·메뉴 상세). 두 화면이 같은 값을 써야 오가며 볼 때 어색하지 않다 */
+  heroImage: 220,
 } as const;
 
 /** 그림자 - RN 0.76+ / web 공통 boxShadow 문자열 */

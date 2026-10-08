@@ -17,15 +17,15 @@ import { CATEGORIES } from '@dt/constants';
 import { won } from '@utils/formatter';
 import { MenuRow } from '@components/store';
 import { NavIconButton, ScreenWrapper, SkeletonList, Typography, typographyStyles } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'StoreDetail'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 /** 화면 맨 위에 떠 있는 바(뒤로·검색·찜)의 높이. 공통 Header 와 같은 56 */
 const HEADER_HEIGHT = 56;
-/** 대표 이미지 높이 */
-const HERO_HEIGHT = 180;
+/** 대표 이미지 높이. 메뉴 상세와 같은 공용 값 */
+const HERO_HEIGHT = screen.heroImage;
 /** ScrollView 자식 중 상단에 고정할 카테고리 칩 줄의 순번 (0 대표이미지, 1 가게정보, 2 칩 줄) */
 const STICKY_INDEX = 2;
 
