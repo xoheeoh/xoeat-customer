@@ -1,4 +1,4 @@
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import Typography from './Typography';
 import { theme } from '@styles';
@@ -9,7 +9,8 @@ interface BadgeProps {
   label: string;
   tone?: BadgeTone;
   size?: 'small' | 'medium';
-  style?: ViewStyle;
+  /** 배열도 받는다 (예: [위치 보정, 조건부 배경]) */
+  style?: StyleProp<ViewStyle>;
 }
 
 const TONES: Record<BadgeTone, { bg: keyof typeof theme.colors; fg: keyof typeof theme.colors }> = {

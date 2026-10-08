@@ -103,7 +103,8 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Typography mode="subtitle2" color="gray900">
                     {item.label || '배송지'}
                   </Typography>
-                  {item.isDefault && <Badge label="기본" tone="orange" />}
+                  {/* 상자 기준으로는 가운데지만 한글 글자가 줄 상자 안에서 살짝 위에 그려져 배지가 낮아 보인다. 1px 올린다 */}
+                  {item.isDefault && <Badge label="기본" tone="orange" style={styles.badge} />}
                 </View>
                 <Typography mode="body2" color="gray700">
                   {item.roadAddress}
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingTop: screen.topCard, paddingBottom: 20, flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14 },
   radio: { marginTop: 1 },
+  badge: { transform: [{ translateY: -1 }] },
   labelIcon: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
   actions: { flexDirection: 'row', gap: 14, marginTop: 6 },
   sep: { height: 1, backgroundColor: theme.colors.gray100 },
