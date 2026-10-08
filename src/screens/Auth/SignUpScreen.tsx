@@ -8,8 +8,18 @@ import { login, signUp } from '@apis/customerApi';
 import { isOk } from '@apis/client';
 import { loadingController } from '@utils/loadingController';
 import { goToMain } from '@utils/navigationHelpers';
-import { phone as fmtPhone } from '@utils/formatter';
-import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, CheckBox, KeyboardAwareScrollView, ScreenWrapper, TextField, Typography } from '@components/common';
+import { phone as fmtPhone, phoneInput } from '@utils/formatter';
+import type { TermsKey } from '@dt/terms';
+import { TermsSheet } from './TermsSheet';
+import {
+  BOTTOM_BTN_BOX_HEIGHT,
+  BottomBtnBox,
+  CheckBox,
+  KeyboardAwareScrollView,
+  ScreenWrapper,
+  TextField,
+  Typography,
+} from '@components/common';
 import { screen } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
@@ -26,6 +36,23 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [agree, setAgree] = useState(false);
+  /** 지금 보고 있는 약관. null 이면 시트 닫힘. 서비스 이용약관 → 개인정보 처리방침 순서로 넘어간다 */
+  const [openTerms, setOpenTerms] = useState<TermsKey | null>(null);
+
+  /** 체크박스를 눌렀을 때. 꺼져 있으면 약관부터 보여주고, 켜져 있으면 바로 끈다 */
+  const onPressAgree = () => {
+    if (agree) setAgree(false);
+    else setOpenTerms('service');
+  };
+  /** 시트의 "동의하기". 1번 문서면 2번으로, 2번 문서면 체크를 켜고 닫는다 */
+  const onAgreeTerms = () => {
+    if (openTerms === 'service') {
+      setOpenTerms('privacy');
+    } else {
+      setAgree(true);
+      setOpenTerms(null);
+    }
+  };
   const [submitting, setSubmitting] = useState(false);
 
   const idOk = ID_RULE.test(loginId.trim().toLowerCase());
@@ -52,11 +79,18 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
     loadingController.stop();
     setSubmitting(false);
     if (!isOk(l)) {
-      await alert({ title: '회원가입', message1: '가입은 됐지만 로그인에 실패했어요. 로그인 화면에서 다시 시도해 주세요.' });
+      await alert({
+        title: '회원가입',
+        message1: '가입은 됐지만 로그인에 실패했어요. 로그인 화면에서 다시 시도해 주세요.',
+      });
       navigation.goBack();
       return;
     }
-    await alert({ title: '가입 완료', message1: `${name.trim()}님, 환영해요!`, message2: '배송지와 결제수단을 등록하면 바로 주문할 수 있어요.' });
+    await alert({
+      title: '가입 완료',
+      message1: `${name.trim()}님, 환영해요!`,
+      message2: '배송지와 결제수단을 등록하면 바로 주문할 수 있어요.',
+    });
     goToMain(navigation);
   };
 
@@ -96,32 +130,49 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
           error={password2.length > 0 && !pw2Ok}
           descMessage={password2.length > 0 && !pw2Ok ? '비밀번호가 일치하지 않아요' : undefined}
         />
-        <TextField id="name" inputMode="text" label="이름" placeholder="주문자 이름" value={name} onChangeText={setName} maxLength={20} />
+        <TextField
+          id="name"
+          inputMode="text"
+          label="이름"
+          placeholder="주문자 이름"
+          value={name}
+          onChangeText={setName}
+          maxLength={20}
+        />
         <TextField
           id="phone"
           inputMode="tel"
           label="휴대폰 번호"
           placeholder="010-0000-0000"
           value={phone}
-          onChangeText={setPhone}
+          // 카드번호처럼 치는 즉시 하이픈을 넣는다
+          onChangeText={(v) => setPhone(phoneInput(v))}
           maxLength={13}
           error={phone.length > 0 && !phoneOk}
-          descMessage="주문 진행 상황을 안내받을 번호예요"
         />
 
         <View style={styles.terms}>
+          {/* 체크박스를 켜려면 두 약관을 차례로 읽고 각각 동의해야 한다. 체크 상태는 시트의 마지막 "동의하기"에서만 켜진다 */}
           <CheckBox
             isChecked={agree}
-            setIsChecked={setAgree}
+            setIsChecked={onPressAgree}
             labelComponent={
               <Typography mode="body2" color="gray700">
-                서비스 이용약관과 개인정보 처리방침에 동의합니다 (데모)
+                서비스 이용약관과 개인정보 처리방침에 동의합니다.
               </Typography>
             }
           />
         </View>
       </KeyboardAwareScrollView>
       <BottomBtnBox label="가입하기" onPress={submit} disabled={!valid || submitting} />
+
+      <TermsSheet
+        doc={openTerms}
+        step={openTerms ? { index: openTerms === 'service' ? 1 : 2, total: 2 } : undefined}
+        agreeLabel={openTerms === 'service' ? '동의하고 다음' : '동의하기'}
+        onClose={() => setOpenTerms(null)}
+        onAgree={onAgreeTerms}
+      />
     </ScreenWrapper>
   );
 };

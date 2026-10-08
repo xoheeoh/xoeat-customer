@@ -75,6 +75,18 @@ export const timeKo = (hhmm: string) => {
   return `${ampm} ${hh}:${pad(m)}`;
 };
 
+/**
+ * 휴대폰 번호 입력 → 치는 즉시 하이픈. "010" → "010-1234" → "010-123-4567"(10자리) → "010-1234-5678"(11자리).
+ * 숫자만 남기고 11자리까지만 받는다. 하이픈을 직접 쳐도 중복되지 않는다. 위의 phone() 은 완성된 번호 표시용, 이건 입력 중 표시용.
+ */
+export const phoneInput = (s: string) => {
+  const d = s.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  if (d.length <= 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+};
+
 /** 카드번호 입력 → "1234 5678 9012 3456" */
 export const cardNumber = (s: string) => s.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
 
