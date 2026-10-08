@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,9 +12,10 @@ import { getAddresses, setFavorite } from '@apis/customerApi';
 import { isOk } from '@apis/client';
 import { useSession } from '@contexts/SessionContext';
 import { useCart } from '@contexts/CartContext';
+import { useDialog } from '@contexts/DialogContext';
 import { CATEGORIES } from '@dt/constants';
 import { StoreCard } from '@components/store';
-import { ScreenWrapper, SkeletonList, Typography, typographyStyles } from '@components/common';
+import { InfoBox, ScreenWrapper, SkeletonList, Typography, typographyStyles } from '@components/common';
 import { theme } from '@styles';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -29,19 +30,49 @@ const HomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { me, favoriteIds, setFavoriteIds } = useSession();
   const { cart, count, itemsAmount } = useCart();
+  const { alert } = useDialog();
   const [stores, setStores] = useState<Store[] | null>(null);
+  /** 주소 등록 안내 모달이 지금 떠 있는지. 떠 있는 동안 포커스가 다시 와도(모달 때문에 재조회) 겹쳐 띄우지 않는다 */
+  const promptingAddress = useRef(false);
   const [address, setAddress] = useState<Address | null>(null);
   const [category, setCategory] = useState('ALL');
   const [query, setQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  /** 등록된 주소가 있는지. null 은 아직 모름(조회 전·조회 실패). 없으면 가게 목록 대신 주소 등록 안내를 보여준다 */
+  const [hasAddress, setHasAddress] = useState<boolean | null>(null);
+
+  /**
+   * 카테고리 칩 줄을 누른 칩이 가운데 오도록 옮기기 위한 값들.
+   * 웹에서는 가로 목록을 끌 수 없고 스크롤바도 숨겨져 있어, 누를 때마다 옆으로 옮겨 줘야 뒤쪽 카테고리가 보인다.
+   */
+  const catsScrollRef = useRef<ScrollView>(null);
+  const catsViewportWidth = useRef(0);
+  const catLayouts = useRef<Record<string, { x: number; width: number }>>({});
+  const selectCategory = (code: string) => {
+    setCategory(code);
+    const l = catLayouts.current[code];
+    if (!l || !catsViewportWidth.current) return;
+    const x = l.x + l.width / 2 - catsViewportWidth.current / 2;
+    catsScrollRef.current?.scrollTo({ x: Math.max(0, x), animated: true });
+  };
 
   const load = useCallback(async () => {
     const [s, a] = await Promise.all([getStores(favoriteIds), getAddresses()]);
     setStores(isOk(s) && s.stores ? s.stores : []);
     const list = isOk(a) && a.addresses ? a.addresses : [];
     setAddress(list.find((x) => x.isDefault) ?? list[0] ?? null);
-  }, [favoriteIds]);
+    setHasAddress(isOk(a) ? list.length > 0 : null);
+
+    // 주소가 없으면 안내 후 주소 등록 화면으로 보낸다. 등록할 때까지 홈에 올 때마다 다시 뜬다.
+    // 주소 조회가 실패했을 때(isOk 아님)는 띄우지 않는다
+    if (isOk(a) && list.length === 0 && !promptingAddress.current) {
+      promptingAddress.current = true;
+      await alert({ title: '배달 주소 등록', message1: '이용 전 배달 받을 주소를 먼저 등록해 주세요.', message2: '주소를 등록하면 바로 주문할 수 있어요.', confirmText: '등록하러 가기' });
+      promptingAddress.current = false;
+      navigation.navigate('AddressEdit');
+    }
+  }, [favoriteIds, alert, navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -51,11 +82,13 @@ const HomeScreen = () => {
 
   const filtered = useMemo(() => {
     if (!stores) return [];
+    // 주소가 없으면 가게 목록을 보여주지 않는다 (목록은 마포구 고정이지만, 주소 등록을 먼저 하게 유도)
+    if (hasAddress === false) return [];
     const q = query.trim();
     // 검색어는 가게 이름 · 소개 · 메뉴 이름 중 하나라도 포함하면 걸린다
     const matches = (s: Store) => s.name.includes(q) || s.intro.includes(q) || (s.menuNames ?? []).some((m) => m.includes(q));
     return stores.filter((s) => (category === 'ALL' || s.categoryCd === category) && (!q || matches(s)));
-  }, [stores, category, query]);
+  }, [stores, category, query, hasAddress]);
 
   const toggleFavorite = async (store: Store) => {
     if (!me) return;
@@ -79,7 +112,7 @@ const HomeScreen = () => {
   const listHead = (
     <View style={styles.listHead}>
       <Typography mode="subtitle1" color="gray900">
-        {category === 'ALL' ? '마포구 전체' : CATEGORIES.find((c) => c.code === category)?.label}
+        {category === 'ALL' ? '전체' : CATEGORIES.find((c) => c.code === category)?.label}
       </Typography>
       <Typography mode="caption1" color="gray500">
         {stores ? `${filtered.length}곳` : ''}
@@ -106,43 +139,58 @@ const HomeScreen = () => {
         contentContainerStyle={styles.list}
         stickySectionHeadersEnabled
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
-        // 스크롤하면 사라지는 부분: 인사말 + 검색창
+        // 스크롤하면 사라지는 부분: 인사말 + 검색창 + 데모 안내
         ListHeaderComponent={
-          <View style={styles.hero}>
-            <Typography mode="heading2" color="white">
-              오늘 뭐 먹지?{'\n'}
-              <Typography mode="heading2" color="orange100">
-                {me?.name ? `${me.name}님, ` : ''}간편하게 주문해요
+          <View>
+            <View style={styles.hero}>
+              <Typography mode="heading2" color="white">
+                오늘 뭐 먹지?{'\n'}
+                <Typography mode="heading2" color="orange100">
+                  {me?.name ? `${me.name}님, ` : ''}간편하게 주문해요
+                </Typography>
               </Typography>
-            </Typography>
-            <View style={[styles.search, searchFocused && styles.searchFocused]}>
-              <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.gray500} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="가게 이름이나 메뉴로 검색"
-                placeholderTextColor={theme.colors.gray400}
-                value={query}
-                onChangeText={setQuery}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                returnKeyType="search"
-              />
-              {!!query && (
-                <Pressable onPress={() => setQuery('')} hitSlop={8}>
-                  <MaterialCommunityIcons name="close-circle" size={18} color={theme.colors.gray400} />
-                </Pressable>
-              )}
+              <View style={[styles.search, searchFocused && styles.searchFocused]}>
+                <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.gray500} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="가게 이름이나 메뉴로 검색"
+                  placeholderTextColor={theme.colors.gray400}
+                  value={query}
+                  onChangeText={setQuery}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  returnKeyType="search"
+                />
+                {!!query && (
+                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                    <MaterialCommunityIcons name="close-circle" size={18} color={theme.colors.gray400} />
+                  </Pressable>
+                )}
+              </View>
             </View>
+            {/* 가게 목록은 주소와 무관하게 마포구 데이터로 고정이라, 왜 내 동네 가게가 안 보이는지 설명한다 */}
+            <InfoBox icon="map-marker-radius-outline" style={styles.demoNotice}>
+              데모라서 가게 목록은 마포구 기준으로 고정되어 있어요. 등록한 주소와 상관없이 같은 가게가 보여요.
+            </InfoBox>
           </View>
         }
         // 상단에 걸리는 부분: 카테고리 줄. 뒤로 지나가는 카드가 비치지 않게 흰 배경을 깐다
         renderSectionHeader={() => (
           <View style={styles.catsSticky}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cats}>
+            <ScrollView
+              ref={catsScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.cats}
+              onLayout={(e) => (catsViewportWidth.current = e.nativeEvent.layout.width)}>
               {CATEGORIES.map((c) => {
                 const on = category === c.code;
                 return (
-                  <Pressable key={c.code} onPress={() => setCategory(c.code)} style={styles.cat}>
+                  <Pressable
+                    key={c.code}
+                    onPress={() => selectCategory(c.code)}
+                    onLayout={(e) => (catLayouts.current[c.code] = { x: e.nativeEvent.layout.x, width: e.nativeEvent.layout.width })}
+                    style={styles.cat}>
                     <View style={[styles.catIcon, on && styles.catIconOn]}>
                       <MaterialCommunityIcons name={c.icon as IconName} size={22} color={on ? theme.colors.white : theme.colors.orange600} />
                     </View>
@@ -163,17 +211,19 @@ const HomeScreen = () => {
           </View>
         )}
         ItemSeparatorComponent={() => <View style={styles.sep} />}
-        // 카드가 하나도 없을 때: 불러오는 중이면 스켈레톤, 다 불러왔으면 제목 줄 + 빈 안내
+        // 카드가 하나도 없을 때: 불러오는 중이면 스켈레톤, 주소가 없으면 등록 안내, 다 불러왔으면 제목 줄 + 빈 안내
         renderSectionFooter={() =>
           stores === null ? (
             <SkeletonList rows={4} />
           ) : filtered.length === 0 ? (
+            // 주소가 없어 목록을 비운 경우도 "가게가 0곳"인 보통의 빈 목록과 똑같이 보여준다 (등록 유도는 홈에 올 때마다 뜨는 모달이 맡는다).
+            // 검색어·카테고리로 걸러서 비었으면 "조건에 맞는", 거른 게 없으면 "주문할 수 있는" 가게가 없다고 말한다
             <View style={{ paddingHorizontal: 20 }}>
               {listHead}
               <View style={styles.empty}>
                 <MaterialCommunityIcons name="store-search-outline" size={40} color={theme.colors.gray300} />
                 <Typography mode="body1" color="gray500">
-                  조건에 맞는 가게가 없어요
+                  {query.trim() || category !== 'ALL' ? '조건에 맞는 가게가 없어요' : '주문할 수 있는 가게가 없어요'}
                 </Typography>
               </View>
             </View>
@@ -206,6 +256,7 @@ const styles = StyleSheet.create({
   addressBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, height: 56 },
   list: { paddingBottom: 16 },
   hero: { marginHorizontal: 20, marginBottom: 8, padding: 20, borderRadius: theme.radius.xl, backgroundColor: theme.colors.primary, gap: 16 },
+  demoNotice: { marginHorizontal: 20, marginBottom: 8 },
   // 테두리는 평소 투명으로 두고 포커스 때 색만 바꾼다 (두께가 생겼다 없어지면 크기가 들썩인다)
   search: {
     flexDirection: 'row',
