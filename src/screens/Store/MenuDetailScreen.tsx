@@ -13,14 +13,14 @@ import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
 import { MenuOptionGroups, toCartItem, useMenuOptionSelection } from '@components/store';
 import { AdultBadge, Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, NavIconButton, ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuDetail'>;
 
 /** 화면 맨 위에 떠 있는 바(뒤로 버튼)의 높이. 공통 Header 와 같은 56 */
 const HEADER_HEIGHT = 56;
-/** 메뉴 이미지 높이 */
-const IMAGE_HEIGHT = 240;
+/** 메뉴 이미지 높이. 가게 상세와 같은 공용 값 */
+const IMAGE_HEIGHT = screen.heroImage;
 
 /**
  * 메뉴 상세: 옵션 그룹(필수=라디오, 선택=체크, 최소/최대) · 수량 · 장바구니 담기
