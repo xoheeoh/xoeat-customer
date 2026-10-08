@@ -64,6 +64,8 @@ const MESSAGES: Record<string, string> = {
   OPTION_TOO_MANY: '옵션 선택 개수를 초과했어요.',
   MIN_ORDER_AMOUNT: '최소 주문금액을 채워 주세요.',
   ORDER_NOT_FOUND: '주문을 찾을 수 없습니다.',
+  ACTIVE_ORDER_EXISTS: '진행 중인 주문이 있어 지금은 탈퇴할 수 없어요. 주문이 끝난 뒤 다시 시도해 주세요.',
+  PASSWORD_MISMATCH: '비밀번호가 맞지 않아요.',
   INVALID_TRANSITION: '이미 가게에서 접수한 주문이라 취소할 수 없어요. 가게에 직접 문의해 주세요.',
   invalid_credentials: '아이디 또는 비밀번호가 올바르지 않습니다.',
   'Invalid login credentials': '아이디 또는 비밀번호가 올바르지 않습니다.',

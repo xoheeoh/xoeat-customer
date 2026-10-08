@@ -37,6 +37,25 @@ export const logout = () =>
     return {};
   });
 
+/**
+ * 회원탈퇴. 비밀번호를 다시 확인한 뒤 서버 함수(delete_my_account)로 계정을 지운다.
+ * - 비밀번호가 틀리면 PASSWORD_MISMATCH
+ * - 진행 중인 주문이 있으면 서버가 ACTIVE_ORDER_EXISTS 로 거절한다
+ * 성공하면 세션도 함께 끊는다 (계정이 사라졌으므로).
+ */
+export const deleteMyAccount = (loginId: string, password: string) =>
+  run(async () => {
+    const { error } = await supabase.auth.signInWithPassword({ email: emailFor(loginId), password });
+    if (error) {
+      const e = new Error('PASSWORD_MISMATCH') as Error & { code?: string };
+      e.code = 'PASSWORD_MISMATCH';
+      throw e;
+    }
+    unwrap(await supabase.rpc('delete_my_account'));
+    await supabase.auth.signOut();
+    return {};
+  });
+
 /* ── 프로필 ────────────────────────────────────────────────────── */
 type CustomerRow = { id: string; login_id: string; name: string; phone: string };
 const toCustomer = (r: CustomerRow): Customer => ({ id: r.id, loginId: r.login_id, name: r.name, phone: r.phone });
