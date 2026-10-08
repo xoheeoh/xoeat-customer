@@ -68,8 +68,14 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
     });
     if (!yes) return;
     const res = await deleteAddress(a.id);
-    if (isOk(res)) setList((prev) => (prev ?? []).filter((x) => x.id !== a.id));
-    else Toast.show({ type: 'error', text1: res.resultMsg });
+    if (!isOk(res)) {
+      Toast.show({ type: 'error', text1: res.resultMsg });
+      return;
+    }
+    // 기본 배송지를 지우면 서버가 남은 주소 중 하나를 자동으로 기본으로 올린다 (ensure_default_exists 트리거).
+    // 어느 주소가 됐는지 화면이 알 수 없으므로 목록을 다시 읽는다
+    const latest = await getAddresses();
+    setList(isOk(latest) && latest.addresses ? latest.addresses : (list ?? []).filter((x) => x.id !== a.id));
   };
 
   return (

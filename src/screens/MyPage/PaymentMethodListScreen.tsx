@@ -52,8 +52,14 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
     const yes = await confirm({ title: '카드 삭제', message1: `${m.brand}카드 **** ${m.last4}를 삭제할까요?`, confirmText: '삭제', cancelText: '취소' });
     if (!yes) return;
     const res = await deletePaymentMethod(m.id);
-    if (isOk(res)) setList((prev) => (prev ?? []).filter((x) => x.id !== m.id));
-    else Toast.show({ type: 'error', text1: res.resultMsg });
+    if (!isOk(res)) {
+      Toast.show({ type: 'error', text1: res.resultMsg });
+      return;
+    }
+    // 기본 카드를 지우면 서버가 남은 카드 중 하나를 자동으로 기본으로 올린다 (ensure_default_exists 트리거).
+    // 어느 카드가 됐는지 화면이 알 수 없으므로 목록을 다시 읽는다
+    const latest = await getPaymentMethods();
+    setList(isOk(latest) && latest.methods ? latest.methods : (list ?? []).filter((x) => x.id !== m.id));
   };
 
   return (
