@@ -15,7 +15,7 @@ import { ORDER_STATUS, ORDER_TYPE } from '@dt/constants';
 import { loadingController } from '@utils/loadingController';
 import { dateTime, timeOnly, won } from '@utils/formatter';
 import { Badge, ScreenWrapper, SecondaryButton, SkeletonList, Typography } from '@components/common';
-import { screen, theme } from '@styles';
+import { rowBaseline, rowBetween, screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OrderDetail'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     padding: 16,
     boxShadow: theme.shadow.card,
   },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  topRow: rowBetween,
   tracker: { flexDirection: 'row', marginTop: 24, marginBottom: 12 },
   step: { flex: 1, alignItems: 'center', gap: 6, position: 'relative' },
   stepIcon: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.pill,
     backgroundColor: theme.colors.gray100,
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
+  row: { ...rowBaseline, gap: 12 },
   divider: { height: 1, backgroundColor: theme.colors.line },
 });
 

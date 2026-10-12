@@ -21,10 +21,7 @@ export type OrderRow = {
   cooking_minutes: number | null;
   reject_reason: string | null;
   accepted_at: string | null;
-  ready_at: string | null;
-  delivering_at: string | null;
   completed_at: string | null;
-  canceled_at: string | null;
   created_at: string;
   stores?: { name: string } | null;
   order_items?: ItemRow[];
@@ -32,7 +29,7 @@ export type OrderRow = {
 
 const ORDER_SELECT = '*, stores(name), order_items(id, menu_id, menu_name, quantity, unit_price, options, line_amount)';
 
-export const toOrder = (r: OrderRow): Order => ({
+const toOrder = (r: OrderRow): Order => ({
   id: r.id,
   orderNo: r.order_no,
   storeId: r.store_id,
@@ -49,10 +46,7 @@ export const toOrder = (r: OrderRow): Order => ({
   cookingMinutes: r.cooking_minutes,
   rejectReason: r.reject_reason,
   acceptedAt: r.accepted_at,
-  readyAt: r.ready_at,
-  deliveringAt: r.delivering_at,
   completedAt: r.completed_at,
-  canceledAt: r.canceled_at,
   createdAt: r.created_at,
   items: (r.order_items ?? []).map((i) => ({ id: i.id, menuId: i.menu_id, menuName: i.menu_name, quantity: i.quantity, unitPrice: i.unit_price, options: i.options ?? [], lineAmount: i.line_amount })),
 });

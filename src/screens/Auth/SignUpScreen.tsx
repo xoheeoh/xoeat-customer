@@ -8,7 +8,7 @@ import { login, signUp } from '@apis/customerApi';
 import { isOk } from '@apis/client';
 import { loadingController } from '@utils/loadingController';
 import { goToMain } from '@utils/navigationHelpers';
-import { phone as fmtPhone, phoneInput } from '@utils/formatter';
+import { PHONE_RULE, phone as fmtPhone, phoneInput } from '@utils/formatter';
 import type { TermsKey } from '@dt/terms';
 import { TermsSheet } from './TermsSheet';
 import {
@@ -25,7 +25,6 @@ import { screen } from '@styles';
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 const ID_RULE = /^[a-z0-9]{4,20}$/;
-const PHONE_RULE = /^01[016789]-?\d{3,4}-?\d{4}$/;
 
 /** 회원가입: 아이디·비밀번호·이름·휴대폰 + 약관 동의. 가입 직후 자동 로그인 */
 const SignUpScreen: React.FC<Props> = ({ navigation }) => {

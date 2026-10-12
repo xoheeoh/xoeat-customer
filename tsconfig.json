@@ -35,9 +35,6 @@
       ],
       "@env": [
         "./src/shims/env"
-      ],
-      "react-native-linear-gradient": [
-        "./src/shims/linear-gradient"
       ]
     }
   },

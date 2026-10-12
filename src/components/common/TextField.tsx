@@ -1,7 +1,6 @@
 import { InputModeOptions, StyleSheet, TextInput, View } from 'react-native';
 import { Icon } from 'react-native-paper';
 import { theme } from '@styles';
-import PrimaryButton from './PrimaryButton';
 import AnimatedTextInput from './AnimatedTextInput';
 import Typography from './Typography';
 
@@ -15,9 +14,6 @@ interface TextFieldProps {
   error?: boolean;
   descMessage?: string;
   secure?: boolean;
-  buttonDisabled?: boolean;
-  buttonLabel?: string;
-  buttonEvent?: () => void;
   disabled?: boolean;
   maxLength?: number;
   editable?: boolean;
@@ -25,56 +21,26 @@ interface TextFieldProps {
   onFocus?: () => void;
 }
 
-const TextField: React.FC<TextFieldProps> = ({
-  id,
-  inputMode = 'text',
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  error,
-  descMessage,
-  secure = false,
-  buttonDisabled = false,
-  buttonLabel,
-  buttonEvent,
-  disabled,
-  maxLength,
-  editable,
-  inputRef,
-  onFocus,
-}) => {
+/** 라벨이 떠 있는 입력칸 + 아래 안내·오류 문구 */
+const TextField: React.FC<TextFieldProps> = ({ id, inputMode = 'text', label, value, onChangeText, placeholder, error, descMessage, secure = false, disabled, maxLength, editable, inputRef, onFocus }) => {
   return (
     <View>
-      <View style={styles.btnBox}>
-        <AnimatedTextInput
-          ref={inputRef}
-          id={id}
-          inputMode={inputMode}
-          placeholder={placeholder}
-          placeholderTextColor={theme.colors.gray300}
-          value={value}
-          setValue={onChangeText}
-          secureTextEntry={secure}
-          label={label}
-          error={error}
-          disabled={disabled}
-          maxLength={maxLength}
-          editable={editable}
-          onFocus={() => onFocus?.()}
-        />
-
-        {buttonLabel && buttonEvent && !disabled && (
-          <PrimaryButton
-            style={{ minWidth: 100 }}
-            key={buttonDisabled.toString()}
-            disabled={buttonDisabled}
-            label={buttonLabel}
-            onPress={buttonEvent}
-            size={'lg'}
-          />
-        )}
-      </View>
+      <AnimatedTextInput
+        ref={inputRef}
+        id={id}
+        inputMode={inputMode}
+        placeholder={placeholder}
+        placeholderTextColor={theme.colors.gray300}
+        value={value}
+        setValue={onChangeText}
+        secureTextEntry={secure}
+        label={label}
+        error={error}
+        disabled={disabled}
+        maxLength={maxLength}
+        editable={editable}
+        onFocus={() => onFocus?.()}
+      />
 
       {/* 보여줘야 하는 오류 or 안내 메시지가 있는 경우 */}
       {descMessage && (
@@ -90,7 +56,6 @@ const TextField: React.FC<TextFieldProps> = ({
 };
 
 const styles = StyleSheet.create({
-  btnBox: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   alertMsg: {
     flexDirection: 'row',
     alignItems: 'center',

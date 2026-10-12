@@ -20,8 +20,6 @@ module.exports = function (api) {
             '@storages': './src/svc/storages',
             '@dt': './src/svc/data',
             '@env': './src/shims/env',
-            // 그라데이션은 expo-linear-gradient 를 같은 API 이름으로 연결한다.
-            'react-native-linear-gradient': './src/shims/linear-gradient',
           },
         },
       ],

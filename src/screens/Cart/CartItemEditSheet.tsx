@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 import type { CartItem, Menu } from '@typ/domain';
@@ -9,8 +8,8 @@ import { isOk } from '@apis/client';
 import { useCart } from '@contexts/CartContext';
 import { won } from '@utils/formatter';
 import { MenuOptionGroups, selectionFromOptionIds, toCartItem, useMenuOptionSelection } from '@components/store';
-import { BottomSheet, PrimaryButton, SkeletonList, Typography } from '@components/common';
-import { theme } from '@styles';
+import { BottomSheet, PrimaryButton, QuantityStepper, SkeletonList, Typography } from '@components/common';
+import { rowBetween } from '@styles';
 
 interface CartItemEditSheetProps {
   /** 수정할 장바구니 항목. null 이면 시트가 닫혀 있다 */
@@ -90,17 +89,7 @@ const EditBody: React.FC<{ item: CartItem; menu: Menu; onDone: () => void }> = (
           <Typography mode="subtitle1" color="gray900">
             수량
           </Typography>
-          <View style={styles.stepper}>
-            <Pressable onPress={() => setQty((q) => Math.max(1, q - 1))} style={styles.stepBtn} hitSlop={6}>
-              <MaterialCommunityIcons name="minus" size={20} color={qty > 1 ? theme.colors.gray900 : theme.colors.gray300} />
-            </Pressable>
-            <Typography mode="subtitle1" color="gray900" style={{ minWidth: 28, textAlign: 'center' }}>
-              {qty}
-            </Typography>
-            <Pressable onPress={() => setQty((q) => Math.min(99, q + 1))} style={styles.stepBtn} hitSlop={6}>
-              <MaterialCommunityIcons name="plus" size={20} color={theme.colors.gray900} />
-            </Pressable>
-          </View>
+          <QuantityStepper value={qty} onChange={setQty} />
         </View>
       </ScrollView>
 
@@ -112,9 +101,7 @@ const EditBody: React.FC<{ item: CartItem; menu: Menu; onDone: () => void }> = (
 const styles = StyleSheet.create({
   body: { gap: 12 },
   scroll: { maxHeight: Dimensions.get('window').height * 0.55 },
-  qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16 },
-  stepper: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: theme.colors.line, borderRadius: theme.radius.md, padding: 4 },
-  stepBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  qtyRow: { ...rowBetween, paddingVertical: 16 },
 });
 
 export default CartItemEditSheet;

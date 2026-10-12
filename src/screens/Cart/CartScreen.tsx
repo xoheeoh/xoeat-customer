@@ -10,8 +10,8 @@ import { isOk } from '@apis/client';
 import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
-import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, InfoBox, ScreenWrapper, TextButton, Typography } from '@components/common';
-import { screen, theme } from '@styles';
+import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, InfoBox, QuantityStepper, ScreenWrapper, TextButton, Typography } from '@components/common';
+import { rowBaseline, rowBetween, screen, theme } from '@styles';
 import { CartItemEditSheet } from './CartItemEditSheet';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Cart'>;
@@ -133,23 +133,8 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
               </Pressable>
               {/* 수량 조절이 아래쪽(가격 줄 높이)에 오도록 아래 정렬 */}
               <View style={{ justifyContent: 'flex-end' }}>
-                <View style={styles.stepper}>
-                  {/* 삭제 버튼은 따로 두지 않는다. 수량 1 에서 빼기 자리가 쓰레기통으로 바뀌어 삭제를 맡는다 */}
-                  <Pressable
-                    onPress={() => (item.quantity > 1 ? setQuantity(item.key, item.quantity - 1) : remove(item.key))}
-                    style={styles.stepBtn}
-                    hitSlop={6}
-                    accessibilityRole="button"
-                    accessibilityLabel={item.quantity > 1 ? '수량 빼기' : `${item.menuName} 삭제`}>
-                    <MaterialCommunityIcons name={item.quantity > 1 ? 'minus' : 'trash-can-outline'} size={18} color={theme.colors.gray700} />
-                  </Pressable>
-                  <Typography mode="subtitle3" color="gray900" style={{ minWidth: 24, textAlign: 'center' }}>
-                    {item.quantity}
-                  </Typography>
-                  <Pressable onPress={() => setQuantity(item.key, item.quantity + 1)} style={styles.stepBtn} hitSlop={6}>
-                    <MaterialCommunityIcons name="plus" size={18} color={theme.colors.gray700} />
-                  </Pressable>
-                </View>
+                {/* 삭제 버튼은 따로 두지 않는다. 수량 1 에서 빼기 자리가 쓰레기통으로 바뀌어 삭제를 맡는다 */}
+                <QuantityStepper size="sm" value={item.quantity} onChange={(q) => setQuantity(item.key, q)} onRemove={() => remove(item.key)} removeLabel={`${item.menuName} 삭제`} />
               </View>
             </View>
           ))}
@@ -208,15 +193,13 @@ const styles = StyleSheet.create({
   typeRow: { flexDirection: 'row', gap: 10 },
   typeChip: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 12, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.line },
   typeChipOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
-  storeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  storeRow: rowBetween,
   // 글자(subtitle2, 줄높이 24) 옆에 놓는 18px 아이콘. 상자 기준으로는 가운데지만 아이콘 글리프가 상자 안에서 살짝 아래에 그려져 1px 올린다.
   // margin 으로 올리면 가운데 정렬 때문에 절반만 움직이므로 위치 이동(translateY)을 쓴다
   inlineIcon: { transform: [{ translateY: -1 }] },
   item: { flexDirection: 'row', gap: 12, paddingVertical: 4 },
   itemBorder: { borderTopWidth: 1, borderTopColor: theme.colors.gray100, paddingTop: 12 },
-  stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: theme.colors.line, borderRadius: theme.radius.sm },
-  stepBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  row: rowBaseline,
   divider: { height: 1, backgroundColor: theme.colors.line },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
 });

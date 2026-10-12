@@ -1,9 +1,7 @@
 import { useRef } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { Animated, PixelRatio, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, PixelRatio, StyleSheet, View } from 'react-native';
 import { theme } from '@styles';
-
-import { typographyStyles } from './Typography';
 
 /**
  * 라디오 원 크기. dp 값을 그 기기에서 정수 픽셀이 되도록 맞춘다.
@@ -51,18 +49,6 @@ const useRadioBounce = () => {
   };
 };
 
-interface RadioButtonData {
-  id: string;
-  label: string;
-  value: string;
-}
-
-interface RadioProps {
-  selectedId: string;
-  setSelectedId: (id: string) => void;
-  radioButtons: RadioButtonData[];
-}
-
 interface RadioIndicatorProps {
   selected: boolean;
   /** 선택 불가(품절 등). 연한 회색으로 가라앉힌다 */
@@ -72,7 +58,7 @@ interface RadioIndicatorProps {
 }
 
 /**
- * 라디오 동그라미만 그린다. 가격·품절 표시처럼 다른 내용과 함께 한 줄을 직접 구성할 때 쓴다 (메뉴 옵션 등).
+ * 라디오 동그라미만 그린다. 가격·품절 표시처럼 다른 내용과 함께 한 줄을 직접 구성하는 곳(메뉴 옵션, 배송지·결제수단 선택)이 쓴다.
  * 점은 테두리 안쪽이 아니라 바깥 원 전체를 기준으로 가운데 맞춘다. 테두리 두께의 반올림에 영향받지 않는다.
  */
 const RadioIndicator: React.FC<RadioIndicatorProps> = ({ selected, disabled, style }) => (
@@ -86,42 +72,7 @@ const RadioIndicator: React.FC<RadioIndicatorProps> = ({ selected, disabled, sty
   </Animated.View>
 );
 
-/** 라디오 한 줄. 줄마다 눌림 효과 값을 따로 가져야 해서 컴포넌트로 분리했다 */
-const RadioRow: React.FC<{ button: RadioButtonData; selected: boolean; onSelect: () => void }> = ({ button, selected, onSelect }) => {
-  const bounce = useRadioBounce();
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityLabel={button.label}
-      accessibilityState={{ checked: selected }}
-      style={styles.row}
-      onPressIn={bounce.onPressIn}
-      onPressOut={bounce.onPressOut}
-      onPress={() => {
-        bounce.onPress();
-        if (!selected) onSelect();
-      }}>
-      <RadioIndicator selected={selected} style={bounce.style} />
-      <Text style={styles.label}>{button.label}</Text>
-    </Pressable>
-  );
-};
-
-const Radio: React.FC<RadioProps> = ({ selectedId, setSelectedId, radioButtons }) => (
-  <View accessibilityRole="radiogroup" style={styles.group}>
-    {radioButtons.map((button) => (
-      <RadioRow key={button.id} button={button} selected={button.id === selectedId} onSelect={() => setSelectedId(button.id)} />
-    ))}
-  </View>
-);
-
 const styles = StyleSheet.create({
-  group: { alignItems: 'flex-start' },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 48,
-  },
   outerCircle: { width: OUTER_SIZE, height: OUTER_SIZE },
   ring: { borderRadius: OUTER_SIZE / 2, borderWidth: RING_WIDTH },
   ringSelected: { borderColor: theme.colors.primary },
@@ -136,13 +87,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
   },
   dotDisabled: { backgroundColor: theme.colors.gray300 },
-  label: {
-    marginLeft: 10,
-    ...typographyStyles.body2,
-    fontFamily: 'Pretendard-Medium', // 선택지 라벨은 body2 에서 굵기만 Medium
-    color: theme.colors.gray900,
-  },
 });
 
-export default Radio;
-export { Radio, RadioIndicator, useRadioBounce };
+export { RadioIndicator, useRadioBounce };

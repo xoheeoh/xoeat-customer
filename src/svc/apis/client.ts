@@ -40,7 +40,7 @@ export const hasSession = async () => !!(await supabase.auth.getSession()).data.
 /* ── 응답 모양 ─────────────────────────────────────────────────── */
 export type ApiResult<T = object> = { resultCd: string; resultMsg: string } & Partial<T>;
 
-export const ok = <T extends object>(data?: T): ApiResult<T> =>
+const ok = <T extends object>(data?: T): ApiResult<T> =>
   ({ resultCd: '0000', resultMsg: '정상 처리되었습니다.', ...(data ?? ({} as T)) }) as ApiResult<T>;
 
 export const isOk = (r: ApiResult<unknown>) => r.resultCd === '0000';
@@ -77,7 +77,7 @@ const MESSAGES: Record<string, string> = {
   '23514': '입력값을 확인해 주세요.',
 };
 
-export const fail = (code: string, msg?: string): ApiResult =>
+const fail = (code: string, msg?: string): ApiResult =>
   ({
     resultCd: code || '9999',
     resultMsg: msg ?? MESSAGES[code] ?? '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.',
@@ -99,7 +99,7 @@ export function unwrap<T>(res: { data: T | null; error: { message: string; code?
 }
 
 /** throw 된 오류 → ApiResult */
-export const toFail = (e: unknown): ApiResult => {
+const toFail = (e: unknown): ApiResult => {
   const err = e as { code?: string; message?: string };
   if (err?.message && /fetch|network/i.test(err.message)) return fail('NETWORK');
   const code = err?.code ?? err?.message ?? '9999';
@@ -114,13 +114,3 @@ export async function run<T extends object>(body: () => Promise<T>): Promise<Api
     return toFail(e);
   }
 }
-
-/* ── 날짜 유틸 ─────────────────────────────────────────────────── */
-const pad = (n: number) => String(n).padStart(2, '0');
-
-/** Date → 'yyyy-MM-dd' (로컬) */
-export const toYmd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-/** 'yyyy-MM-dd' → 그 날 00:00 / 23:59:59 (로컬) ISO */
-export const dayStartIso = (ymd: string) => new Date(`${ymd}T00:00:00`).toISOString();
-export const dayEndIso = (ymd: string) => new Date(`${ymd}T23:59:59.999`).toISOString();

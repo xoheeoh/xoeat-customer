@@ -55,7 +55,6 @@ export interface Store {
   status: 'OPEN' | 'PAUSED';
   deliveryMinutesMin: number;
   deliveryMinutesMax: number;
-  region: string;
   hours: StoreHour[];
   /** 영업시간·일시중지를 종합한 "지금 주문 가능" */
   isOpenNow: boolean;
@@ -103,7 +102,6 @@ export interface CartItem {
   menuId: string;
   menuName: string;
   unitPrice: number; // 메뉴가 + 옵션가 합
-  basePrice: number;
   quantity: number;
   options: { id: string; groupName: string; name: string; price: number }[];
   adultOnly: boolean;
@@ -144,10 +142,7 @@ export interface Order {
   cookingMinutes: number | null;
   rejectReason: string | null;
   acceptedAt: string | null;
-  readyAt: string | null;
-  deliveringAt: string | null;
   completedAt: string | null;
-  canceledAt: string | null;
   createdAt: string;
   items: OrderItem[];
 }

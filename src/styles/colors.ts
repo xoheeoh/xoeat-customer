@@ -8,19 +8,12 @@ const colors = {
   // 브랜드
   primary: '#F0501E',
   primaryDark: '#CC3F14',
-  primarySoft: '#FFF1EC',
-  mint: '#2FA463',
   disabled: '#E6E2DF',
 
   // 시맨틱 (라이트)
   bg: '#F8F6F4', // 화면 배경
-  surface: '#FFFFFF', // 카드/시트
-  surfaceAlt: '#F8F6F4', // 채워진 인풋, 눌림 배경
   line: '#E6E2DF', // 구분선
-  lineStrong: '#D3CEC9',
   text: '#1C1917',
-  textSub: '#6F6A66',
-  textMuted: '#948E89',
   overlay: 'rgba(20, 16, 14, 0.45)',
 
   // 그레이 스케일 (웜)

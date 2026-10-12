@@ -68,15 +68,15 @@ function useDragToClose(panY: Animated.Value, snapBack: Animated.CompositeAnimat
   return panResponder.panHandlers;
 }
 
-interface SimpleBottomSheetProps {
+interface BottomSheetProps {
   visible: boolean;
   setVisible: (visible: boolean) => void;
   title: string;
   content: ReactNode;
 }
 
-// 스크롤 없는 BottomSheet (짧은 내용)
-const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({ visible, setVisible, title, content }) => {
+/** 아래에서 올라오는 시트. 제목 줄과 핸들을 잡고 끌어내리면 닫힌다. 내용이 길면 content 쪽에서 스크롤을 넣는다 */
+const BottomSheet: React.FC<BottomSheetProps> = ({ visible, setVisible, title, content }) => {
   const screenHeight = Dimensions.get('screen').height;
   const panY = useRef(new Animated.Value(screenHeight)).current;
   const insets = useSafeAreaInsets();
@@ -183,15 +183,8 @@ const styles = StyleSheet.create({
   },
   title: { flex: 1 },
   closeBtn: { margin: 0, width: 36, height: 36, borderRadius: 18 },
-  scrollArea: {
-    flex: 1,
-    maxHeight: '100%',
-  },
   content: { paddingHorizontal: 20 },
 });
 
-export default SimpleBottomSheet;
-export { SimpleBottomSheet };
-
-/** 호환용 별칭 */
-export const BottomSheet = SimpleBottomSheet;
+export default BottomSheet;
+export { BottomSheet };

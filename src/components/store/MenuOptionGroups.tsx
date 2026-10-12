@@ -5,7 +5,7 @@ import Toast from 'react-native-toast-message';
 import type { CartItem, Menu, Option, OptionGroup } from '@typ/domain';
 import { won } from '@utils/formatter';
 import { Badge, CheckBox, RadioIndicator, Typography, useRadioBounce } from '@components/common';
-import { theme } from '@styles';
+import { rowBetween, theme } from '@styles';
 
 /** 그룹 id → 선택한 옵션 id 목록 */
 export type OptionSelection = Record<string, string[]>;
@@ -71,7 +71,6 @@ export const toCartItem = (menu: Menu, chosen: CartItem['options'], quantity: nu
     .join(',')}`,
   menuId: menu.id,
   menuName: menu.name,
-  basePrice: menu.price,
   unitPrice: menu.price + chosen.reduce((s, o) => s + o.price, 0),
   quantity,
   options: chosen,
@@ -89,7 +88,7 @@ interface MenuOptionGroupsProps {
 /**
  * 옵션 그룹 목록. 그룹마다 제목 + 필수/선택 배지, 그 아래 옵션 줄.
  * 옵션 줄의 누르는 범위는 "표시(라디오/체크) + 라벨"까지. 빈 공간과 오른쪽 금액은 눌러도 반응하지 않는다.
- * 모양은 공통 Radio / CheckBox 부품과 같다 (사장님 앱과 동일). 체크박스는 누를 때 튕기는 효과까지 그대로
+ * 라디오·체크박스 모양과 누를 때 튕기는 효과는 공통 RadioIndicator / CheckBox 부품의 것이다
  */
 const MenuOptionGroups: React.FC<MenuOptionGroupsProps> = ({ groups, selected, onToggle, variant = 'screen' }) => (
   <>
@@ -156,11 +155,12 @@ const OptionRadio: React.FC<{ selected: boolean; disabled: boolean; onPress: () 
 const styles = StyleSheet.create({
   groupScreen: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 8, borderBottomColor: theme.colors.gray50 },
   groupSheet: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.gray100 },
-  groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },  // 옵션 한 줄: 왼쪽 "표시 + 라벨"(누르는 영역), 오른쪽 금액. 공통 Radio 줄과 같은 높이(48)
-  option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, height: 48 },
-  // 누르는 영역. CheckBox 의 기본 간격(8)을 Radio 줄과 같은 10 으로 덮는다. 라벨이 길면 금액 자리를 침범하지 않고 줄어든다
+  groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
+  // 옵션 한 줄: 왼쪽 "표시 + 라벨"(누르는 영역), 오른쪽 금액. 높이 48
+  option: { ...rowBetween, gap: 12, height: 48 },
+  // 누르는 영역. CheckBox 의 기본 간격(8)을 10 으로 덮는다. 라벨이 길면 금액 자리를 침범하지 않고 줄어든다
   optionPress: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 48, flexShrink: 1 },
-  // 라벨은 Radio 라벨처럼 body2 에서 굵기만 Medium
+  // 라벨은 body2 에서 굵기만 Medium
   optionLabel: { flexShrink: 1, fontFamily: 'Pretendard-Medium' },
 });
 

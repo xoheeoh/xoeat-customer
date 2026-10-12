@@ -5,19 +5,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { RootStackParamList } from '@typ/navigation';
 import Typography from './Typography';
-import { NAV_ICON_BUTTON_SIZE, NavIconButton } from './NavIconButton';
+import { NAV_ICON_BUTTON_SIZE } from './NavIconButton';
 import { theme } from '@styles';
 
 interface HeaderProps {
   bgColor: string;
   title: string;
+  /** 왼쪽 뒤로 가기 버튼 */
   leftButton?: boolean;
+  /** 뒤로 가기 대신 할 일. 없으면 navigation.goBack() */
   leftEvent?: () => void;
-  rightButton?: boolean;
-  rightEvent?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ bgColor, title, leftButton, leftEvent, rightButton, rightEvent }) => {
+/** 화면 위 제목 줄. 제목은 항상 가운데에 오도록 오른쪽에도 버튼과 같은 크기의 빈 칸을 둔다 */
+const Header: React.FC<HeaderProps> = ({ bgColor, title, leftButton, leftEvent }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   return (
@@ -42,22 +43,7 @@ const Header: React.FC<HeaderProps> = ({ bgColor, title, leftButton, leftEvent, 
         <Typography mode="subtitle1" color="gray900" numberOfLines={1} style={styles.title}>
           {title}
         </Typography>
-        {/* 닫기 버튼: DashboardNav 의 햄버거 버튼과 같은 컴포넌트를 써서 위치·모양을 맞춘다 */}
-        {rightButton ? (
-          <NavIconButton
-            icon="close"
-            accessibilityLabel="닫기"
-            onPress={() => {
-              if (rightEvent) {
-                rightEvent();
-              } else {
-                navigation.goBack();
-              }
-            }}
-          />
-        ) : (
-          <View style={styles.button} /> // 버튼이 없어도 제목이 가운데 오도록 같은 크기의 빈 칸을 둔다
-        )}
+        <View style={styles.button} />
       </View>
     </SafeAreaView>
   );
@@ -69,7 +55,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16, // DashboardNav 와 같은 좌우 여백. 닫기 버튼이 햄버거 버튼과 같은 자리에 온다
+    paddingHorizontal: 16,
   },
   title: { flex: 1, textAlign: 'center' },
   button: {

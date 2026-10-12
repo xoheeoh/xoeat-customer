@@ -14,9 +14,9 @@ import { useSession } from '@contexts/SessionContext';
 import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { CATEGORIES } from '@dt/constants';
-import { StoreCard } from '@components/store';
+import { CartBar, StoreCard } from '@components/store';
 import { InfoBox, ScreenWrapper, SkeletonList, Typography, typographyStyles } from '@components/common';
-import { theme } from '@styles';
+import { rowBaseline, theme } from '@styles';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -232,21 +232,7 @@ const HomeScreen = () => {
         ListFooterComponent={<View style={{ height: cart ? 80 : 16 }} />}
       />
 
-      {cart && (
-        <Pressable style={styles.cartBar} onPress={() => navigation.navigate('Cart')}>
-          <View style={styles.cartCount}>
-            <Typography mode="subtitle4" color="orange700">
-              {count}
-            </Typography>
-          </View>
-          <Typography mode="subtitle2" color="white" style={{ flex: 1 }} numberOfLines={1}>
-            {cart.storeName} · {itemsAmount.toLocaleString('ko-KR')}원
-          </Typography>
-          <Typography mode="subtitle2" color="white">
-            장바구니 보기
-          </Typography>
-        </Pressable>
-      )}
+      {cart && <CartBar count={count} text={`${cart.storeName} · ${itemsAmount.toLocaleString('ko-KR')}원`} onPress={() => navigation.navigate('Cart')} />}
     </ScreenWrapper>
   );
 };
@@ -285,24 +271,9 @@ const styles = StyleSheet.create({
   cat: { alignItems: 'center', gap: 6, width: 56 },
   catIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: theme.colors.orange50, alignItems: 'center', justifyContent: 'center' },
   catIconOn: { backgroundColor: theme.colors.primary },
-  listHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 12, paddingBottom: 8 },
+  listHead: { ...rowBaseline, paddingTop: 12, paddingBottom: 8 },
   sep: { height: 1, backgroundColor: theme.colors.gray100, marginHorizontal: 20 },
   empty: { alignItems: 'center', gap: 12, paddingVertical: 60 },
-  cartBar: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 16,
-    height: 56,
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.gray900,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    boxShadow: theme.shadow.float,
-  },
-  cartCount: { minWidth: 24, height: 24, borderRadius: 12, backgroundColor: theme.colors.white, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
 });
 
 export default HomeScreen;

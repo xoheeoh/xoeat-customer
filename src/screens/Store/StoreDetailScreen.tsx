@@ -15,9 +15,9 @@ import { useSession } from '@contexts/SessionContext';
 import { useCart } from '@contexts/CartContext';
 import { CATEGORIES } from '@dt/constants';
 import { won } from '@utils/formatter';
-import { MenuRow } from '@components/store';
+import { CartBar, MenuRow } from '@components/store';
 import { NavIconButton, ScreenWrapper, SkeletonList, Typography, typographyStyles } from '@components/common';
-import { screen, theme } from '@styles';
+import { rowBetween, screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'StoreDetail'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -395,21 +395,7 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           />
         </View>
 
-        {cart && (
-          <Pressable style={styles.cartBar} onPress={() => navigation.navigate('Cart')}>
-            <View style={styles.cartCount}>
-              <Typography mode="subtitle4" color="orange700">
-                {count}
-              </Typography>
-            </View>
-            <Typography mode="subtitle2" color="white" style={{ flex: 1 }} numberOfLines={1}>
-              {cartIsHere ? `${itemsAmount.toLocaleString('ko-KR')}원` : `${cart.storeName} 장바구니`}
-            </Typography>
-            <Typography mode="subtitle2" color="white">
-              장바구니 보기
-            </Typography>
-          </Pressable>
-        )}
+        {cart && <CartBar count={count} text={cartIsHere ? `${itemsAmount.toLocaleString('ko-KR')}원` : `${cart.storeName} 장바구니`} onPress={() => navigation.navigate('Cart')} />}
       </View>
     </ScreenWrapper>
   );
@@ -466,7 +452,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 40,
   },
-  // 포커스 표시는 공통 SearchBox 와 같은 규칙: 메인색 테두리 + 흰 배경
+  // 포커스 표시는 입력칸과 같은 규칙: 메인색 테두리 + 흰 배경
   searchFocused: { borderColor: theme.colors.primary, backgroundColor: theme.colors.white },
   searchInput: {
     flex: 1,
@@ -484,7 +470,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.line,
     marginBottom: -HEADER_HEIGHT,
   },
-  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  nameRow: { ...rowBetween, gap: 12 },
   nameWithPill: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   infoLink: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
   closedPill: {
@@ -528,29 +514,6 @@ const styles = StyleSheet.create({
   sectionGap: { height: 8, backgroundColor: theme.colors.gray50, marginTop: 4 },
   sep: { height: 1, backgroundColor: theme.colors.gray100, marginHorizontal: 20 },
   empty: { alignItems: 'center', gap: 12, paddingVertical: 60 },
-  cartBar: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 16,
-    height: 56,
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.gray900,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    boxShadow: theme.shadow.float,
-  },
-  cartCount: {
-    minWidth: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: theme.colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
 });
 
 export default StoreDetailScreen;
