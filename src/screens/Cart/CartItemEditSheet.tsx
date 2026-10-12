@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 import type { CartItem, Menu } from '@typ/domain';
@@ -62,6 +62,8 @@ const EditBody: React.FC<{ item: CartItem; menu: Menu; onDone: () => void }> = (
     ),
   );
   const [qty, setQty] = useState(item.quantity);
+  // 창 크기가 바뀌어도(웹 창 조절·회전) 따라가도록 훅으로 읽는다
+  const { height: windowHeight } = useWindowDimensions();
 
   const save = () => {
     if (missing.length) {
@@ -76,7 +78,7 @@ const EditBody: React.FC<{ item: CartItem; menu: Menu; onDone: () => void }> = (
   return (
     <View style={styles.body}>
       {/* 옵션이 많으면 시트 안에서 스크롤. 화면의 절반 남짓까지만 차지한다 */}
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ maxHeight: windowHeight * 0.55 }} showsVerticalScrollIndicator={false}>
         {menu.optionGroups.length > 0 ? (
           <MenuOptionGroups groups={menu.optionGroups} selected={selected} onToggle={toggle} variant="sheet" />
         ) : (
@@ -100,7 +102,6 @@ const EditBody: React.FC<{ item: CartItem; menu: Menu; onDone: () => void }> = (
 
 const styles = StyleSheet.create({
   body: { gap: 12 },
-  scroll: { maxHeight: Dimensions.get('window').height * 0.55 },
   qtyRow: { ...rowBetween, paddingVertical: 16 },
 });
 

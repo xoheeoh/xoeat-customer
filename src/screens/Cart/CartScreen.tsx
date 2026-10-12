@@ -11,7 +11,7 @@ import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
 import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, InfoBox, QuantityStepper, ScreenWrapper, TextButton, Typography } from '@components/common';
-import { rowBaseline, rowBetween, screen, theme } from '@styles';
+import { nudgeUp, rowBaseline, rowBetween, screen, theme } from '@styles';
 import { CartItemEditSheet } from './CartItemEditSheet';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Cart'>;
@@ -98,6 +98,8 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
             {/* 누르는 범위는 "아이콘 가게명 >"까지. flex: 1 을 주면 "전체 삭제" 앞 빈 공간까지 눌린다. 이름이 길면 전체 삭제를 밀지 않고 줄어든다 */}
             <Pressable
               onPress={() => navigation.navigate('StoreDetail', { storeId: cart.storeId })}
+              accessibilityRole="button"
+              accessibilityLabel={`${cart.storeName} 가게로 이동`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1, marginRight: 12 }}>
               <MaterialCommunityIcons name="storefront-outline" size={18} color={theme.colors.gray700} style={styles.inlineIcon} />
               <Typography mode="subtitle2" color="gray900" numberOfLines={1} style={{ flexShrink: 1 }}>
@@ -105,7 +107,7 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
               </Typography>
               <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray400} style={styles.inlineIcon} />
             </Pressable>
-            <Pressable onPress={clearAll} hitSlop={8}>
+            <Pressable onPress={clearAll} hitSlop={8} accessibilityRole="button">
               <Typography mode="caption1" color="gray500">
                 전체 삭제
               </Typography>
@@ -189,14 +191,13 @@ const Row: React.FC<{ label: string; value: string; strong?: boolean }> = ({ lab
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 16, paddingTop: screen.topCard, gap: 12 },
   card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, gap: 12, boxShadow: theme.shadow.card },
-  // 배달/포장 선택 버튼. 이전에 주문 화면에 있던 모양 그대로
+  // 배달/포장 선택 버튼
   typeRow: { flexDirection: 'row', gap: 10 },
   typeChip: { flex: 1, alignItems: 'center', gap: 4, paddingVertical: 12, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.line },
   typeChipOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
   storeRow: rowBetween,
-  // 글자(subtitle2, 줄높이 24) 옆에 놓는 18px 아이콘. 상자 기준으로는 가운데지만 아이콘 글리프가 상자 안에서 살짝 아래에 그려져 1px 올린다.
-  // margin 으로 올리면 가운데 정렬 때문에 절반만 움직이므로 위치 이동(translateY)을 쓴다
-  inlineIcon: { transform: [{ translateY: -1 }] },
+  // 글자(subtitle2) 옆에 놓는 18px 아이콘
+  inlineIcon: nudgeUp,
   item: { flexDirection: 'row', gap: 12, paddingVertical: 4 },
   itemBorder: { borderTopWidth: 1, borderTopColor: theme.colors.gray100, paddingTop: 12 },
   row: rowBaseline,

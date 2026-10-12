@@ -12,7 +12,7 @@ import { isOk } from '@apis/client';
 import { useDialog } from '@contexts/DialogContext';
 import { cardBrandColor } from '@dt/constants';
 import { Badge, InfoBox, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { screen, theme } from '@styles';
+import { nudgeUp, screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PaymentMethodList'>;
 
@@ -89,8 +89,7 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
                     {item.brand}카드
                   </Typography>
                   {/* 선택된 줄은 배경이 배지와 같은 연한 주황이라 배지가 묻힌다. 그때만 배지 배경을 흰색으로 */}
-                  {/* 상자 기준으로는 가운데지만 한글 글자가 줄 상자 안에서 살짝 위에 그려져 배지가 낮아 보인다. 1px 올린다 */}
-                  {item.isDefault && <Badge label="기본" tone="orange" style={[styles.badge, selectMode && isPicked(item) && styles.badgeOnPicked]} />}
+                  {item.isDefault && <Badge label="기본" tone="orange" style={[nudgeUp, selectMode && isPicked(item) && styles.badgeOnPicked]} />}
                 </View>
                 <Typography mode="caption1" color="gray500">
                   **** **** **** {item.last4} · {item.expiry}
@@ -99,13 +98,13 @@ const PaymentMethodListScreen: React.FC<Props> = ({ navigation, route }) => {
                 {!selectMode && (
                   <View style={styles.actions}>
                     {!item.isDefault && (
-                      <Pressable onPress={() => makeDefault(item)} hitSlop={6}>
+                      <Pressable onPress={() => makeDefault(item)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${item.brand}카드를 기본으로 설정`}>
                         <Typography mode="caption1" color="orange700">
                           기본으로 설정
                         </Typography>
                       </Pressable>
                     )}
-                    <Pressable onPress={() => remove(item)} hitSlop={6}>
+                    <Pressable onPress={() => remove(item)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${item.brand}카드 삭제`}>
                       <Typography mode="caption1" color="red600">
                         삭제
                       </Typography>
@@ -141,7 +140,6 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingTop: screen.topCard, paddingBottom: 20, gap: 10, flexGrow: 1 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.line },
   cardRowOn: { borderColor: theme.colors.primary, backgroundColor: theme.colors.orange50 },
-  badge: { transform: [{ translateY: -1 }] },
   badgeOnPicked: { backgroundColor: theme.colors.white },
   cardArt: { width: 72, height: 46, borderRadius: 8, padding: 7, justifyContent: 'space-between' },
   actions: { flexDirection: 'row', gap: 14, marginTop: 6 },

@@ -2,7 +2,7 @@
  * Supabase 클라이언트와 API 어댑터 공통 헬퍼.
  *
  * 화면 코드는 { resultCd, resultMsg, ...data } 형태의 응답만 본다.
- * 어댑터(storeApi / menuApi / orderApi)가 Supabase 호출 결과를 그 모양으로 바꿔 돌려준다.
+ * 어댑터(catalogApi / customerApi / orderApi)가 Supabase 호출 결과를 그 모양으로 바꿔 돌려준다.
  * 서버가 바뀌어도 고칠 곳은 어댑터뿐이다.
  */
 import 'react-native-url-polyfill/auto';
@@ -12,7 +12,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@env';
 import { secureStorage } from '@storages/asyncStorage';
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.warn('EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY 가 설정되지 않았습니다. apps/mobile/.env 확인');
+  console.warn('EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY 가 설정되지 않았습니다. 프로젝트 루트의 .env 확인 (.env.example 참고)');
 }
 
 // 값이 비어 있어도 앱은 뜨게 두고(로그인 시 NETWORK 오류로 안내), createClient 가 throw 하지 않도록 자리표시자를 넣는다
@@ -32,7 +32,7 @@ if (Platform.OS !== 'web') {
   });
 }
 
-/** 아이디 → 로그인 이메일. 사장님 앱(@demo.xoeat.app)과 도메인이 달라 같은 아이디를 써도 충돌하지 않는다 (seed-demo.mjs 와 같은 규칙) */
+/** 아이디 → 로그인 이메일. 사장님 앱(@demo.xoeat.app)과 도메인이 달라 같은 아이디를 써도 충돌하지 않는다 (사장님 앱 저장소의 scripts/seed-demo.mjs 와 같은 규칙) */
 export const emailFor = (loginId: string) => `${loginId.trim().toLowerCase()}@customer.xoeat.app`;
 
 export const hasSession = async () => !!(await supabase.auth.getSession()).data.session;

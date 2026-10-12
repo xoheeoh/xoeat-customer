@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '@typ/navigation';
 import Typography from './Typography';
 import { NAV_ICON_BUTTON_SIZE } from './NavIconButton';
-import { theme } from '@styles';
+import { screen, theme } from '@styles';
 
 interface HeaderProps {
   bgColor: string;
@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ bgColor, title, leftButton, leftEvent }
 
 const styles = StyleSheet.create({
   headerBar: {
-    height: 56,
+    height: screen.headerHeight,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

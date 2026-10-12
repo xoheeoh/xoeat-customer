@@ -1,4 +1,4 @@
-import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import type { TermsKey } from '@dt/terms';
 import { TERMS } from '@dt/terms';
@@ -24,6 +24,8 @@ interface TermsSheetProps {
  */
 const TermsSheet: React.FC<TermsSheetProps> = ({ doc, onClose, onAgree, agreeLabel = '동의하기', step }) => {
   const terms = doc ? TERMS[doc] : null;
+  // 창 크기가 바뀌어도(웹 창 조절·회전) 따라가도록 훅으로 읽는다
+  const { height: windowHeight } = useWindowDimensions();
   return (
     <BottomSheet
       visible={!!doc}
@@ -35,7 +37,8 @@ const TermsSheet: React.FC<TermsSheetProps> = ({ doc, onClose, onAgree, agreeLab
         terms ? (
           // key: 문서가 바뀌면(1→2) 스크롤 위치가 맨 위로 돌아가도록 내용을 새로 만든다
           <View key={terms.key} style={styles.body}>
-            <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+            {/* 약관이 길어도 시트가 화면을 다 덮지 않게 절반 남짓에서 스크롤 */}
+            <ScrollView style={{ maxHeight: windowHeight * 0.55 }} showsVerticalScrollIndicator={false}>
               <View style={styles.summary}>
                 <Typography mode="body2" color="gray700">
                   {terms.summary}
@@ -62,8 +65,6 @@ const TermsSheet: React.FC<TermsSheetProps> = ({ doc, onClose, onAgree, agreeLab
 
 const styles = StyleSheet.create({
   body: { gap: 16 },
-  // 약관이 길어도 시트가 화면을 다 덮지 않게 절반 남짓에서 스크롤
-  scroll: { maxHeight: Dimensions.get('window').height * 0.55 },
   summary: { backgroundColor: theme.colors.gray50, borderRadius: theme.radius.md, padding: 14, marginBottom: 16 },
   section: { gap: 6, marginBottom: 18 },
 });

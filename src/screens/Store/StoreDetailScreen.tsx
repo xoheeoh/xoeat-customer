@@ -22,8 +22,8 @@ import { rowBetween, screen, theme } from '@styles';
 type Props = NativeStackScreenProps<RootStackParamList, 'StoreDetail'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-/** 화면 맨 위에 떠 있는 바(뒤로·검색·찜)의 높이. 공통 Header 와 같은 56 */
-const HEADER_HEIGHT = 56;
+/** 화면 맨 위에 떠 있는 바(뒤로·검색·찜)의 높이. 공통 Header 와 같다 */
+const HEADER_HEIGHT = screen.headerHeight;
 /** 대표 이미지 높이. 메뉴 상세와 같은 공용 값 */
 const HERO_HEIGHT = screen.heroImage;
 /** ScrollView 자식 중 상단에 고정할 카테고리 칩 줄의 순번 (0 대표이미지, 1 가게정보, 2 칩 줄) */
@@ -260,6 +260,7 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Pressable
                   onPress={() => navigation.navigate('StoreInfo', { storeId })}
                   hitSlop={8}
+                  accessibilityRole="button"
                   style={styles.infoLink}>
                   <Typography mode="caption1" color="gray600">
                     가게 정보
@@ -310,6 +311,8 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                       <Pressable
                         key={name}
                         onPress={() => scrollToSection(name)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: on }}
                         style={[styles.chip, on && styles.chipOn]}>
                         <Typography mode="caption1" color={on ? 'white' : 'gray700'}>
                           {name}
@@ -379,7 +382,7 @@ const StoreDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   returnKeyType="search"
                 />
                 {!!query && (
-                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                  <Pressable onPress={() => setQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="검색어 지우기">
                     <MaterialCommunityIcons name="close-circle" size={16} color={theme.colors.gray400} />
                   </Pressable>
                 )}

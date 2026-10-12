@@ -114,7 +114,7 @@ const OrdersScreen = () => {
                     지난 주문
                   </Typography>
                 )}
-                <Pressable onPress={() => navigation.navigate('OrderDetail', { orderId: item.id })} style={[styles.card, isActive && styles.cardActive]}>
+                <Pressable onPress={() => navigation.navigate('OrderDetail', { orderId: item.id })} accessibilityRole="button" style={[styles.card, isActive && styles.cardActive]}>
                   <View style={styles.topRow}>
                     <View style={{ flexDirection: 'row', gap: 6 }}>
                       <Badge label={ORDER_TYPE[item.orderType].label} tone={ORDER_TYPE[item.orderType].tone} size="medium" />

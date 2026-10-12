@@ -175,6 +175,8 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             {/* 누르는 범위는 "가게명 >"까지. flex: 1 을 주면 전화 버튼 앞 빈 공간까지 눌린다. 이름이 길면 전화 버튼을 밀지 않고 줄어든다 */}
             <Pressable
               onPress={() => navigation.navigate('StoreDetail', { storeId: order.storeId })}
+              accessibilityRole="button"
+              accessibilityLabel={`${order.storeName} 가게로 이동`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1, marginRight: 12 }}>
               <Typography mode="subtitle1" color="gray900" numberOfLines={1} style={{ flexShrink: 1 }}>
                 {order.storeName}
@@ -182,7 +184,7 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               <MaterialCommunityIcons name="chevron-right" size={18} color={theme.colors.gray400} />
             </Pressable>
             {!!storePhone && (
-              <Pressable onPress={() => Linking.openURL(`tel:${storePhone.replace(/-/g, '')}`)} style={styles.callBtn}>
+              <Pressable onPress={() => Linking.openURL(`tel:${storePhone.replace(/-/g, '')}`)} style={styles.callBtn} accessibilityRole="button">
                 <MaterialCommunityIcons name="phone-outline" size={16} color={theme.colors.gray700} />
                 <Typography mode="caption1" color="gray700">
                   가게 전화

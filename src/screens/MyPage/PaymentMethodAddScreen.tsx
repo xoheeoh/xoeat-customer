@@ -159,7 +159,7 @@ const PaymentMethodAddScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 20, paddingTop: screen.topCard, paddingBottom: 20, gap: 16 },
   // 카드 미리보기. 폭을 꽉 채우면 웹(최대 700)에서 높이가 400 가까이 돼 화면을 다 차지하므로, 실제 카드 느낌의 크기(최대 340)에서 멈추고 가운데 둔다.
-  // 폰(폭 360~430, 좌우 여백 제외 320~390)에서는 거의 꽉 차서 예전과 비슷하다
+  // 폰(폭 360~430, 좌우 여백 제외 320~390)에서는 거의 꽉 찬다
   preview: {
     width: '100%',
     maxWidth: 340,

@@ -16,7 +16,7 @@ import { useDialog } from '@contexts/DialogContext';
 import { CATEGORIES } from '@dt/constants';
 import { CartBar, StoreCard } from '@components/store';
 import { InfoBox, ScreenWrapper, SkeletonList, Typography, typographyStyles } from '@components/common';
-import { rowBaseline, theme } from '@styles';
+import { nudgeUp, rowBaseline, screen, theme } from '@styles';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -123,14 +123,13 @@ const HomeScreen = () => {
   return (
     <ScreenWrapper hasHeader={false} backgroundColor="white" inTab>
       {/* 주소 */}
-      <Pressable style={styles.addressBar} onPress={() => navigation.navigate('AddressList')}>
-        {/* 핀 그림은 끝이 뾰족해 무게가 위에 몰리고, 글리프 자체도 상자 안에서 살짝 아래에 그려져 낮아 보인다. 1px 올린다 */}
-        <MaterialCommunityIcons name="map-marker" size={20} color={theme.colors.primary} style={{ transform: [{ translateY: -1 }] }} />
+      <Pressable style={styles.addressBar} onPress={() => navigation.navigate('AddressList')} accessibilityRole="button" accessibilityLabel="배달 주소 바꾸기">
+        {/* 핀·화살표 모두 글리프가 상자 안에서 아래쪽에 그려져 낮아 보여 1px 올린다 */}
+        <MaterialCommunityIcons name="map-marker" size={20} color={theme.colors.primary} style={nudgeUp} />
         <Typography mode="subtitle2" color="gray900" numberOfLines={1} style={{ flexShrink: 1 }}>
           {address ? `${address.roadAddress} ${address.detail}`.trim() : '배달 받을 주소를 등록해 주세요'}
         </Typography>
-        {/* 아래 화살표도 글리프가 상자 안에서 아래쪽에 그려져 낮아 보인다. 핀과 같이 1px 올린다 */}
-        <MaterialCommunityIcons name="chevron-down" size={20} color={theme.colors.gray500} style={{ transform: [{ translateY: -1 }] }} />
+        <MaterialCommunityIcons name="chevron-down" size={20} color={theme.colors.gray500} style={nudgeUp} />
       </Pressable>
 
       <SectionList
@@ -162,7 +161,7 @@ const HomeScreen = () => {
                   returnKeyType="search"
                 />
                 {!!query && (
-                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                  <Pressable onPress={() => setQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="검색어 지우기">
                     <MaterialCommunityIcons name="close-circle" size={18} color={theme.colors.gray400} />
                   </Pressable>
                 )}
@@ -238,8 +237,8 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  // 홈의 상단 바. 다른 화면의 공통 Header 와 같은 높이(56)라 그 아래 첫 카드까지의 간격도 같다
-  addressBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, height: 56 },
+  // 홈의 상단 바. 다른 화면의 공통 Header 와 같은 높이라 그 아래 첫 카드까지의 간격도 같다
+  addressBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, height: screen.headerHeight },
   list: { paddingBottom: 16 },
   hero: { marginHorizontal: 20, marginBottom: 8, padding: 20, borderRadius: theme.radius.xl, backgroundColor: theme.colors.primary, gap: 16 },
   demoNotice: { marginHorizontal: 20, marginBottom: 8 },

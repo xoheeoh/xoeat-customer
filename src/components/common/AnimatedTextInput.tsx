@@ -96,7 +96,7 @@ const AnimatedTextInput = React.forwardRef<TextInput, AnimatedTextInputProps>((p
     }),
   };
 
-  // 기본 gray50 배경 + line 테두리, 포커스 primary, 오류 red. Textarea·SearchBox·Dropdown 과 같은 규칙
+  // 기본 gray50 배경 + line 테두리, 포커스 primary, 오류 red. Textarea 와 같은 규칙
   const borderColor = error ? theme.colors.red500 : isFocused ? theme.colors.primary : theme.colors.line;
   const backgroundColor = error
     ? theme.colors.red50
@@ -148,7 +148,7 @@ const AnimatedTextInput = React.forwardRef<TextInput, AnimatedTextInputProps>((p
       />
       {/* 클리어 버튼 (X) */}
       {value.length > 0 && !disabled && editable !== false && (
-        <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+        <TouchableOpacity style={styles.clearButton} onPress={handleClear} accessibilityRole="button" accessibilityLabel={`${label} 지우기`}>
           <Icon source="close" size={16} color={theme.colors.gray300} />
         </TouchableOpacity>
       )}
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     includeFontPadding: false, // 안드로이드는 글자 위아래에 여백을 더 넣어 top 값이 어긋나므로 제거
   },
   input: {
-    ...typographyStyles.body2, // SearchBox·Textarea·Dropdown 과 같은 body2
+    ...typographyStyles.body2, // Textarea 와 같은 body2
     paddingHorizontal: 16,
     paddingTop: Platform.select({ ios: 12, web: 12, default: 20 }),
     // 웹은 컨테이너 안쪽 높이를 넘으면 어긋나 보이므로 테두리를 뺀 높이로 맞춘다
