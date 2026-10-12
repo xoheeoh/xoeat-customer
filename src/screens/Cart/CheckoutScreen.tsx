@@ -105,7 +105,8 @@ const CheckoutScreen: React.FC<Props> = ({ navigation, route }) => {
   const fee = orderType === 'DELIVERY' ? (store?.deliveryFee ?? 0) : 0;
   const total = itemsAmount + fee;
   const short = store && orderType === 'DELIVERY' ? Math.max(0, store.minOrderAmount - itemsAmount) : 0;
-  const canPay = !!store && !!method && (orderType === 'PICKUP' || !!address) && short === 0;
+  // 장바구니에서 넘어온 사이 영업이 끝났을 수도 있어 여기서도 영업 중인지 본다
+  const canPay = !!store && store.isOpenNow && !!method && (orderType === 'PICKUP' || !!address) && short === 0;
 
   /** 모의 결제: 결제창 시트 → 1.6초 진행 → 승인 → 서버에 주문 생성 */
   const pay = async () => {

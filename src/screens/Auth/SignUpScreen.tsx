@@ -67,15 +67,18 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
     if (!valid || submitting) return;
     setSubmitting(true);
     loadingController.start();
-    const res = await signUp({ loginId, password, name, phone: fmtPhone(phone.trim()) });
+    // 로그인 화면이 아이디·비밀번호를 trim 해서 보내므로 가입도 같은 값으로 보낸다. 다르면 가입 직후 로그인이 안 될 수 있다
+    const id = loginId.trim();
+    const pw = password.trim();
+    const res = await signUp({ loginId: id, password: pw, name: name.trim(), phone: fmtPhone(phone.trim()) });
     if (!isOk(res)) {
       loadingController.stop();
       setSubmitting(false);
       await alert({ title: '회원가입', message1: res.resultMsg });
       return;
     }
-    // 데모는 이메일 확인이 꺼져 있어 바로 로그인된다. 세션이 없으면 한 번 더 로그인한다
-    const l = await login(loginId, password);
+    // 데모는 이메일 확인이 꺼져 있어 가입 직후 바로 로그인할 수 있다
+    const l = await login(id, pw);
     loadingController.stop();
     setSubmitting(false);
     if (!isOk(l)) {

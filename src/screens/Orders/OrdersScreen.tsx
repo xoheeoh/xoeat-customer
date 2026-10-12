@@ -105,7 +105,8 @@ const OrdersScreen = () => {
           renderItem={({ item, index }) => {
             const isActive = ACTIVE.includes(item.status);
             const st = ORDER_STATUS[item.status];
-            const showPastHead = !isActive && (index === 0 || ACTIVE.includes((orders ?? [])[index - 1]?.status));
+            // "지난 주문" 머리글은 지난 주문 중 첫 번째 위에만. 목록은 [진행중…, 지난…] 순으로 다시 짠 배열이라 원래 orders 의 순서로 판단하면 어긋난다
+            const showPastHead = !isActive && item.id === past[0]?.id;
             return (
               <View>
                 {showPastHead && (

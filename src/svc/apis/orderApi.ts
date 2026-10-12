@@ -72,9 +72,16 @@ export const placeOrder = (input: { cart: Cart; orderType: OrderType; addressId:
         })
         .single(),
     ) as unknown as OrderRow;
-    const full = unwrap(await supabase.from('orders').select(ORDER_SELECT).eq('id', created.id).single()) as unknown as OrderRow;
-    return { order: toOrder(full) };
+    // 주문은 이미 만들어졌다. 상세(항목·가게명) 재조회가 실패해도 실패로 돌려주면 사용자가 다시 결제해 중복 주문이 생기므로,
+    // 그때는 생성 결과(항목 없음)로라도 성공을 돌려준다. 주문 완료 화면이 다시 조회한다
+    return { order: toOrder(await refetchOrder(created.id, created)) };
   });
+
+/** 주문 한 건을 상세 포함으로 다시 읽는다. 실패하면 이미 가진 행(fallback)을 쓴다 */
+const refetchOrder = async (orderId: string, fallback: OrderRow): Promise<OrderRow> => {
+  const res = await supabase.from('orders').select(ORDER_SELECT).eq('id', orderId).single();
+  return res.error || !res.data ? fallback : (res.data as unknown as OrderRow);
+};
 
 export const getMyOrders = () =>
   run(async () => {
@@ -91,9 +98,9 @@ export const getOrder = (orderId: string) =>
 /** 접수대기 중에만 가능 */
 export const cancelMyOrder = (orderId: string) =>
   run(async () => {
-    unwrap(await supabase.rpc('cancel_my_order', { p_order_id: orderId }).single());
-    const row = unwrap(await supabase.from('orders').select(ORDER_SELECT).eq('id', orderId).single()) as unknown as OrderRow;
-    return { order: toOrder(row) };
+    const canceled = unwrap(await supabase.rpc('cancel_my_order', { p_order_id: orderId }).single()) as unknown as OrderRow;
+    // 취소는 이미 됐다. 재조회가 실패하면 취소 결과 행(항목 없음)으로라도 성공을 돌려준다
+    return { order: toOrder(await refetchOrder(orderId, canceled)) };
   });
 
 /** 구독마다 다른 채널 이름을 만들기 위한 일련번호 */

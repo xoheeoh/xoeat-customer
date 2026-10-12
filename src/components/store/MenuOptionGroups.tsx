@@ -30,17 +30,22 @@ export const useMenuOptionSelection = (menu: Menu | null, initial: OptionSelecti
 
   const toggle = (g: OptionGroup, o: Option) => {
     if (o.soldOut) return;
-    setSelected((prev) => {
-      const cur = prev[g.id] ?? [];
-      // 하나만 고르는 그룹: 다른 걸 누르면 바꾸고, 필수가 아니면 같은 걸 다시 눌러 해제할 수 있다
-      if (g.maxSelect === 1) return { ...prev, [g.id]: cur.includes(o.id) && !g.required ? [] : [o.id] };
-      if (cur.includes(o.id)) return { ...prev, [g.id]: cur.filter((id) => id !== o.id) };
-      if (cur.length >= g.maxSelect) {
-        Toast.show({ type: 'error', text1: `${g.name}은(는) 최대 ${g.maxSelect}개까지 선택할 수 있어요` });
-        return prev;
-      }
-      return { ...prev, [g.id]: [...cur, o.id] };
-    });
+    const cur = selected[g.id] ?? [];
+    // 하나만 고르는 그룹: 다른 걸 누르면 바꾸고, 필수가 아니면 같은 걸 다시 눌러 해제할 수 있다
+    if (g.maxSelect === 1) {
+      setSelected({ ...selected, [g.id]: cur.includes(o.id) && !g.required ? [] : [o.id] });
+      return;
+    }
+    if (cur.includes(o.id)) {
+      setSelected({ ...selected, [g.id]: cur.filter((id) => id !== o.id) });
+      return;
+    }
+    // 최대 개수 검사와 안내는 상태 갱신 함수 바깥에서 한다 (안에서 하면 React 가 그 함수를 두 번 실행하거나 나중에 실행할 수 있다)
+    if (cur.length >= g.maxSelect) {
+      Toast.show({ type: 'error', text1: `${g.name}은(는) 최대 ${g.maxSelect}개까지 선택할 수 있어요` });
+      return;
+    }
+    setSelected({ ...selected, [g.id]: [...cur, o.id] });
   };
 
   /** 아직 최소 개수를 못 채운 필수 그룹들 */
