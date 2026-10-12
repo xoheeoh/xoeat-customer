@@ -20,8 +20,9 @@ const StoreCard: React.FC<StoreCardProps> = ({ store, onPress, onToggleFavorite 
   const icon = (CATEGORIES.find((c) => c.code === store.categoryCd)?.icon ?? 'silverware-fork-knife') as IconName;
   const closed = !store.isOpenNow;
 
+  // 카드 자체에는 button 역할을 주지 않는다. 안의 찜 버튼과 겹쳐 웹에서 <button> 안에 <button> 이 되어 경고가 난다
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}>
+    <Pressable onPress={onPress} accessibilityLabel={`${store.name} 가게 보기`} style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}>
       <View style={styles.imageWrap}>
         {store.imageUrl ? (
           <Image source={{ uri: store.imageUrl }} style={styles.image} />

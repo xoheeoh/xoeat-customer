@@ -114,7 +114,8 @@ const OrdersScreen = () => {
                     지난 주문
                   </Typography>
                 )}
-                <Pressable onPress={() => navigation.navigate('OrderDetail', { orderId: item.id })} accessibilityRole="button" style={[styles.card, isActive && styles.cardActive]}>
+                {/* 카드 자체에는 button 역할을 주지 않는다. 안의 재주문·가게 보기 버튼과 겹쳐 웹에서 <button> 안에 <button> 이 되어 경고가 난다 */}
+                <Pressable onPress={() => navigation.navigate('OrderDetail', { orderId: item.id })} accessibilityLabel="주문 상세 보기" style={[styles.card, isActive && styles.cardActive]}>
                   <View style={styles.topRow}>
                     <View style={{ flexDirection: 'row', gap: 6 }}>
                       <Badge label={ORDER_TYPE[item.orderType].label} tone={ORDER_TYPE[item.orderType].tone} size="medium" />
