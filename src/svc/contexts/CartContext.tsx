@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getData, storeData } from '@storages/asyncStorage';
 import type { Cart, CartItem, OrderType } from '@typ/domain';
@@ -46,14 +46,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (loaded) storeData(STORAGE_KEY, cart);
   }, [cart, loaded]);
 
+  // 최신 장바구니를 항상 들고 있는 ref. add() 가 "다른 가게 상품이 있는지"를 바로 판단할 때 쓴다
+  // (setCart 의 갱신 함수 안에서 판단하면 React 가 그 함수를 나중에 실행할 수 있어 결과를 동기적으로 돌려줄 수 없다)
+  const cartRef = useRef<Cart | null>(null);
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
+
   const add = useCallback<CartContextType['add']>(
     (store, item, replace = false) => {
-      let ok = true;
+      const current = cartRef.current;
+      if (current && current.storeId !== store.id && !replace) return false;
       setCart((prev) => {
-        if (prev && prev.storeId !== store.id && !replace) {
-          ok = false;
-          return prev;
-        }
         const base = prev && prev.storeId === store.id ? prev : { storeId: store.id, storeName: store.name, items: [] as CartItem[] };
         const exist = base.items.find((i) => i.key === item.key);
         const items = exist
@@ -61,7 +65,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           : [...base.items, item];
         return { ...base, items };
       });
-      return ok;
+      return true;
     },
     [],
   );

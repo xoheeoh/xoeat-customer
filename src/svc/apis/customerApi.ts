@@ -47,6 +47,9 @@ export const deleteMyAccount = (loginId: string, password: string) =>
   run(async () => {
     const { error } = await supabase.auth.signInWithPassword({ email: emailFor(loginId), password });
     if (error) {
+      // 자격 증명 오류만 "비밀번호 불일치"로 바꾼다. 네트워크 오류 등은 그대로 올려 원래 문구가 나오게 한다
+      const wrongPassword = error.code === 'invalid_credentials' || /invalid login credentials/i.test(error.message);
+      if (!wrongPassword) authError(error);
       const e = new Error('PASSWORD_MISMATCH') as Error & { code?: string };
       e.code = 'PASSWORD_MISMATCH';
       throw e;

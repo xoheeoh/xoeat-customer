@@ -47,11 +47,13 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
             height: control.height,
             paddingHorizontal: control.paddingX,
             borderRadius: keyboardVisible ? 0 : control.radius,
+            // 눌림 색: 메인색 버튼은 한 단계 진한 메인색, 그 외 색(예: 빨간 탈퇴 버튼)은 제 색을 유지하고 살짝 어둡게만 한다
             backgroundColor: disabled
               ? theme.colors.disabled
-              : pressed && !isWhite
+              : pressed && !isWhite && buttonColor === theme.colors.primary
                 ? theme.colors.primaryDark
                 : buttonColor,
+            opacity: pressed && !isWhite && !disabled && buttonColor !== theme.colors.primary ? 0.85 : 1,
           },
           isWhite && !disabled && styles.whiteBorder,
         ]}>

@@ -35,6 +35,8 @@ const CartScreen: React.FC<Props> = ({ navigation }) => {
   const canChoose = !!store && store.deliveryEnabled && store.pickupEnabled;
   useEffect(() => {
     if (!store) return;
+    // 둘 다 막힌 가게면 바로잡을 곳이 없다. 이 검사가 없으면 배달↔포장을 무한히 오간다
+    if (!store.deliveryEnabled && !store.pickupEnabled) return;
     if (orderType === 'DELIVERY' && !store.deliveryEnabled) setOrderType('PICKUP');
     if (orderType === 'PICKUP' && !store.pickupEnabled) setOrderType('DELIVERY');
   }, [store, orderType, setOrderType]);

@@ -79,7 +79,9 @@ const OrderDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const res = await cancelMyOrder(order.id);
     loadingController.stop();
     if (isOk(res) && res.order) {
-      setOrder(res.order);
+      // 재조회에 실패하면 항목·가게명이 빈 결과가 올 수 있어, 그 부분은 화면에 있던 값을 유지한다
+      const next = res.order;
+      setOrder((prev) => (prev ? { ...next, items: next.items.length ? next.items : prev.items, storeName: next.storeName || prev.storeName } : next));
       Toast.show({ type: 'success', text1: '주문을 취소했어요' });
     } else Toast.show({ type: 'error', text1: '취소하지 못했어요', text2: res.resultMsg });
   };
