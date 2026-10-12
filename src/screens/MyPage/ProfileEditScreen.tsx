@@ -11,13 +11,12 @@ import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { loadingController } from '@utils/loadingController';
 import { goToLogin } from '@utils/navigationHelpers';
-import { phone as fmtPhone, phoneInput } from '@utils/formatter';
+import { PHONE_RULE, phone as fmtPhone, phoneInput } from '@utils/formatter';
 import { BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, InfoBox, KeyboardAwareScrollView, ScreenWrapper, TextField, Typography } from '@components/common';
 import { screen } from '@styles';
 import { DeleteAccountSheet } from './DeleteAccountSheet';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
-const PHONE_RULE = /^01[016789]-?\d{3,4}-?\d{4}$/;
 
 /** 내 정보: 이름·휴대폰 (주문자 정보로 쓰인다). 맨 아래에 회원탈퇴 */
 const ProfileEditScreen: React.FC<Props> = ({ navigation }) => {

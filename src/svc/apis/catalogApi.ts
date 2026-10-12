@@ -21,19 +21,18 @@ type StoreRow = {
   status: 'OPEN' | 'PAUSED';
   delivery_minutes_min: number;
   delivery_minutes_max: number;
-  region: string;
   store_hours: HourRow[];
   /** 가게 목록 조회에서만 함께 가져온다 (메뉴명 검색용) */
   menus?: { name: string }[];
 };
 
-const STORE_SELECT = 'id, name, category_cd, intro, origin_info, phone, address, image_url, min_order_amount, delivery_fee, delivery_enabled, pickup_enabled, status, delivery_minutes_min, delivery_minutes_max, region, store_hours(*)';
+const STORE_SELECT = 'id, name, category_cd, intro, origin_info, phone, address, image_url, min_order_amount, delivery_fee, delivery_enabled, pickup_enabled, status, delivery_minutes_min, delivery_minutes_max, store_hours(*)';
 
 const hhmm = (t: string | null) => (t ? t.slice(0, 5) : null);
 const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
 
 /** 영업시간 기준 "지금 영업중" (자정 넘김·휴게시간 반영). 요일은 0=월 … 6=일 */
-export const isOpenAt = (hours: StoreHour[], now = new Date()): boolean => {
+const isOpenAt = (hours: StoreHour[], now = new Date()): boolean => {
   const dow = (now.getDay() + 6) % 7;
   const cur = now.getHours() * 60 + now.getMinutes();
   const within = (h: StoreHour, t: number) => {
@@ -76,7 +75,6 @@ const toStore = (r: StoreRow, favoriteIds: Set<string>): Store => {
     status: r.status,
     deliveryMinutesMin: r.delivery_minutes_min,
     deliveryMinutesMax: r.delivery_minutes_max,
-    region: r.region,
     hours,
     isOpenNow: r.status === 'OPEN' && (hours.length === 0 || isOpenAt(hours)),
     isFavorite: favoriteIds.has(r.id),

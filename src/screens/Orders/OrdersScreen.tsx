@@ -15,7 +15,7 @@ import { useDialog } from '@contexts/DialogContext';
 import { ORDER_STATUS, ORDER_TYPE } from '@dt/constants';
 import { dateTime, won } from '@utils/formatter';
 import { Badge, ScreenWrapper, SecondaryButton, SkeletonList, Typography } from '@components/common';
-import { screen, theme } from '@styles';
+import { rowBetween, screen, theme } from '@styles';
 
 const ACTIVE: Order['status'][] = ['PENDING', 'ACCEPTED', 'READY', 'DELIVERING'];
 
@@ -67,7 +67,7 @@ const OrdersScreen = () => {
       if (!isOk(res) || !res.menu || res.menu.saleStatus !== 'ON_SALE') continue;
       const m = res.menu;
       if (m.optionGroups.some((g) => g.required)) continue; // 필수 옵션이 있는 메뉴는 직접 골라야 한다
-      add({ id: order.storeId, name: order.storeName }, { key: `${m.id}:`, menuId: m.id, menuName: m.name, basePrice: m.price, unitPrice: m.price, quantity: item.quantity, options: [], adultOnly: m.adultOnly }, first);
+      add({ id: order.storeId, name: order.storeName }, { key: `${m.id}:`, menuId: m.id, menuName: m.name, unitPrice: m.price, quantity: item.quantity, options: [], adultOnly: m.adultOnly }, first);
       first = false;
       added += 1;
     }
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, paddingTop: screen.topForm, paddingBottom: 16, gap: 10, flexGrow: 1 },
   card: { backgroundColor: theme.colors.white, borderRadius: theme.radius.lg, padding: 16, gap: 6, boxShadow: theme.shadow.card },
   cardActive: { borderWidth: 1.5, borderColor: theme.colors.orange300 },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  topRow: rowBetween,
   statusLine: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, backgroundColor: theme.colors.orange50, borderRadius: theme.radius.sm, paddingHorizontal: 10, paddingVertical: 8 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 6 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 80 },

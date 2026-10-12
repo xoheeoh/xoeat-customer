@@ -3,7 +3,11 @@ import { Keyboard, Platform, ScrollView, ScrollViewProps, TextInput, findNodeHan
 import { NavigationContext } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type AutoScrollStrategy = 'focused-input';
+/**
+ * 키보드가 올라왔을 때 기본으로 확보할 하단 여백.
+ * 안드로이드는 keyboardAccessoryHeight(버튼 56)와 합쳐 하단 버튼 상자 전체 높이(84)보다 커야 마지막 내용이 상자에 가리지 않는다.
+ */
+const BASE_BOTTOM_PADDING = Platform.OS === 'ios' ? 60 : 48;
 
 /**
  * 스크롤 뷰 안의 입력칸이 포커스될 때 알려 주는 통로.
@@ -18,28 +22,12 @@ export const useNotifyInputFocus = () => {
   return ctx?.onInputFocus ?? (() => {});
 };
 
-export interface KeyboardAwareScrollViewProps extends Omit<ScrollViewProps, 'contentContainerStyle'> {
+interface KeyboardAwareScrollViewProps extends Omit<ScrollViewProps, 'contentContainerStyle'> {
   /**
    * 화면 하단에 absolute로 떠 있는 UI(BottomBtnBox 등) 높이 합.
    * 키보드가 올라왔을 때 입력칸이 이 영역에 가리지 않도록 스크롤 오프셋에 반영함.
    */
   keyboardAccessoryHeight?: number;
-  /**
-   * iOS에서 키보드가 올라왔을 때 기본으로 확보할 하단 여백. (기본값 60)
-   */
-  iosBaseBottomPadding?: number;
-  /**
-   * Android에서 기본으로 확보할 하단 여백. (기본값 48)
-   * keyboardAccessoryHeight(버튼 56)와 합쳐 하단 버튼 상자 전체 높이(84)보다 커야 마지막 내용이 상자에 가리지 않는다.
-   */
-  androidBaseBottomPadding?: number;
-  /** 추가로 더할 하단 padding */
-  extraBottomPadding?: number;
-  /**
-   * 키보드 등장 시 현재 포커스된 입력칸을 자동으로 보이게 스크롤.
-   * 기본은 켜짐.
-   */
-  autoScrollStrategy?: AutoScrollStrategy | 'none';
   contentContainerStyle?: ScrollViewProps['contentContainerStyle'];
 }
 
@@ -49,20 +37,7 @@ export interface KeyboardAwareScrollViewProps extends Omit<ScrollViewProps, 'con
  * - BottomBtnBox 같이 absolute 하단 UI 가 키보드 위에 뜨는 경우를 keyboardAccessoryHeight 로 반영한다
  */
 const KeyboardAwareScrollView = React.forwardRef<ScrollView, KeyboardAwareScrollViewProps>(
-  (
-    {
-      keyboardAccessoryHeight = 0,
-      iosBaseBottomPadding = 60,
-      androidBaseBottomPadding = 48,
-      extraBottomPadding = 0,
-      autoScrollStrategy = 'focused-input',
-      keyboardShouldPersistTaps = 'handled',
-      contentContainerStyle,
-      onScrollBeginDrag,
-      ...rest
-    },
-    forwardedRef,
-  ) => {
+  ({ keyboardAccessoryHeight = 0, keyboardShouldPersistTaps = 'handled', contentContainerStyle, onScrollBeginDrag, ...rest }, forwardedRef) => {
     const insets = useSafeAreaInsets();
     // 스택 아래에 남아 있는 이전 화면도 키보드 이벤트를 받는다. 지금 보이는 화면의 스크롤 뷰만 움직여야 하므로 화면 포커스를 확인한다.
     // 이전 화면이 남의 입력칸을 자기 스크롤 뷰 기준으로 측정하면 "Error measuring text field" 경고가 난다.
@@ -83,11 +58,10 @@ const KeyboardAwareScrollView = React.forwardRef<ScrollView, KeyboardAwareScroll
     const [androidKeyboardHeight, setAndroidKeyboardHeight] = useState(0);
     const scrollYRef = useRef(0);
 
-    const baseBottomPadding = Platform.OS === 'ios' ? iosBaseBottomPadding : androidBaseBottomPadding;
     const computedBottomPadding = useMemo(() => {
       const keyboardPadding = Platform.OS === 'android' ? androidKeyboardHeight : 0;
-      return baseBottomPadding + keyboardAccessoryHeight + extraBottomPadding + keyboardPadding;
-    }, [androidKeyboardHeight, baseBottomPadding, extraBottomPadding, keyboardAccessoryHeight]);
+      return BASE_BOTTOM_PADDING + keyboardAccessoryHeight + keyboardPadding;
+    }, [androidKeyboardHeight, keyboardAccessoryHeight]);
 
     const scrollToFocusedInput = (delayMs: number) => {
       const sv = innerRef.current;
@@ -101,11 +75,10 @@ const KeyboardAwareScrollView = React.forwardRef<ScrollView, KeyboardAwareScroll
       const responder = (sv as any).getScrollResponder?.() ?? (sv as any);
       // 키보드 위에서 "추가로 띄울" 공간.
       // - accessory(BottomBtnBox 등) 높이
-      // - 화면에서 확보하는 기본/추가 bottom padding (ScrollView content inset 역할)
+      // - 화면에서 확보하는 기본 bottom padding (ScrollView content inset 역할)
       // - 멀티라인 입력(Textarea)에서 커서가 더 아래로 내려가는 케이스를 위한 여유
-      const basePadding = baseBottomPadding + extraBottomPadding;
       const safetyMargin = Platform.OS === 'android' ? 48 : 60;
-      const extraOffset = insets.bottom + keyboardAccessoryHeight + basePadding + safetyMargin;
+      const extraOffset = insets.bottom + keyboardAccessoryHeight + BASE_BOTTOM_PADDING + safetyMargin;
 
       setTimeout(() => {
         responder.scrollResponderScrollNativeHandleToKeyboard?.(node, extraOffset, true);
@@ -155,8 +128,6 @@ const KeyboardAwareScrollView = React.forwardRef<ScrollView, KeyboardAwareScroll
     }, []);
 
     useEffect(() => {
-      if (autoScrollStrategy === 'none') return;
-
       // Android는 keyboardDidShow에서 안정적으로 스크롤.
       // iOS는 willShow/didShow 타이밍이 기기별로 달라서 둘 다 2회씩 보정함.
       const subs =
@@ -182,10 +153,9 @@ const KeyboardAwareScrollView = React.forwardRef<ScrollView, KeyboardAwareScroll
         subs.forEach((s) => s.remove());
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoScrollStrategy, keyboardAccessoryHeight, insets.bottom]);
+    }, [keyboardAccessoryHeight, insets.bottom]);
 
     useEffect(() => {
-      if (autoScrollStrategy === 'none') return;
       if (Platform.OS !== 'ios') return;
 
       // iOS: scrollResponderScrollNativeHandleToKeyboard가 덜 올라오는 케이스가 있어,
@@ -202,7 +172,7 @@ const KeyboardAwareScrollView = React.forwardRef<ScrollView, KeyboardAwareScroll
       ];
       return () => subs.forEach((s) => s.remove());
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autoScrollStrategy, keyboardAccessoryHeight, insets.bottom]);
+    }, [keyboardAccessoryHeight, insets.bottom]);
 
     // 키보드가 이미 떠 있는데 다른 입력칸으로 포커스가 옮겨진 경우. 키보드 show 이벤트가 없으므로 여기서 스크롤한다.
     // 키보드가 아직 없으면 곧 올 show 이벤트가 처리하므로 건너뛴다.
@@ -210,7 +180,6 @@ const KeyboardAwareScrollView = React.forwardRef<ScrollView, KeyboardAwareScroll
     useEffect(() => {
       // 매 렌더 뒤 최신 props 를 보는 함수로 바꿔 둔다
       handleInputFocusRef.current = () => {
-        if (autoScrollStrategy === 'none') return;
         if (!Keyboard.isVisible()) return;
         // 키보드가 이미 떠 있어 배치가 안정된 상태라 한 번만 스크롤한다. 두 번 하면 두 단계로 덜컹인다
         scrollToFocusedInput(50);

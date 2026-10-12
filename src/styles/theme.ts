@@ -3,9 +3,6 @@ import colors from './colors';
 /** 모서리 반경 */
 export const radius = { xs: 6, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, pill: 999 } as const;
 
-/** 간격 (4pt 그리드) */
-export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
-
 /**
  * 화면 내용의 위·아래 바깥 여백.
  * 헤더(높이 56)는 제목 아래에 이미 빈 공간을 갖고 있고, 아래쪽은 안전 영역(제스처 막대·홈 인디케이터)이 빈 공간으로 보이므로 크게 띄우지 않는다.
@@ -15,8 +12,6 @@ export const screen = {
   topForm: 16,
   /** 첫 내용이 카드인 화면. 헤더 아래 빈 공간과 카드 안쪽 여백이 숨 쉴 공간을 대신하므로 더하지 않는다 (홈 화면과 같은 간격) */
   topCard: 0,
-  /** 하단 고정 버튼이 없는 화면의 아래 여백. 안전 영역 위에 더한다. 버튼이 있는 화면은 KeyboardAwareScrollView 가 따로 계산한다 */
-  bottom: 16,
   /** 화면 맨 위에 꽉 차게 놓이는 대표 이미지 높이 (가게 상세·메뉴 상세). 두 화면이 같은 값을 써야 오가며 볼 때 어색하지 않다 */
   heroImage: 220,
 } as const;
@@ -31,26 +26,9 @@ export const shadow = {
   primary: '0 4px 12px rgba(240, 80, 30, 0.16)',
 } as const;
 
-/** 다크 모드 시맨틱 토큰. 현재 앱은 라이트 고정이며, 적용 시 colors 의 시맨틱 키를 이 값으로 바꾼다 */
-export const darkColors = {
-  primary: '#F5744C',
-  primaryDark: '#F0501E',
-  primarySoft: 'rgba(245, 116, 76, 0.14)',
-  bg: '#0C0D11',
-  surface: '#15171D',
-  surfaceAlt: '#23262F',
-  line: '#23262F',
-  lineStrong: '#343947',
-  text: '#F6F7FA',
-  textSub: '#AEB5C2',
-  textMuted: '#8B93A3',
-  overlay: 'rgba(0, 0, 0, 0.6)',
-} as const;
-
 export const theme = {
   colors,
   radius,
-  space,
   shadow,
   screen,
 };

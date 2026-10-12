@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Image, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
@@ -12,8 +12,8 @@ import { useCart } from '@contexts/CartContext';
 import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
 import { MenuOptionGroups, toCartItem, useMenuOptionSelection } from '@components/store';
-import { AdultBadge, Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, NavIconButton, ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { screen, theme } from '@styles';
+import { AdultBadge, Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, NavIconButton, QuantityStepper, ScreenWrapper, SkeletonList, Typography } from '@components/common';
+import { rowBaseline, rowBetween, screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuDetail'>;
 
@@ -158,17 +158,7 @@ const MenuDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             <Typography mode="subtitle1" color="gray900">
               수량
             </Typography>
-            <View style={styles.stepper}>
-              <Pressable onPress={() => setQty((q) => Math.max(1, q - 1))} style={styles.stepBtn} hitSlop={6}>
-                <MaterialCommunityIcons name="minus" size={20} color={qty > 1 ? theme.colors.gray900 : theme.colors.gray300} />
-              </Pressable>
-              <Typography mode="subtitle1" color="gray900" style={{ minWidth: 28, textAlign: 'center' }}>
-                {qty}
-              </Typography>
-              <Pressable onPress={() => setQty((q) => Math.min(99, q + 1))} style={styles.stepBtn} hitSlop={6}>
-                <MaterialCommunityIcons name="plus" size={20} color={theme.colors.gray900} />
-              </Pressable>
-            </View>
+            <QuantityStepper value={qty} onChange={setQty} />
           </View>
         </Animated.ScrollView>
 
@@ -203,10 +193,8 @@ const styles = StyleSheet.create({
   headerTitle: { flex: 1, alignItems: 'center', paddingHorizontal: 8 },
   headerSpacer: { width: 40 },
   head: { padding: 20, gap: 8, borderBottomWidth: 8, borderBottomColor: theme.colors.gray50 },
-  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4 },
-  qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
-  stepper: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: theme.colors.line, borderRadius: theme.radius.md, padding: 4 },
-  stepBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  priceRow: { ...rowBaseline, marginTop: 4 },
+  qtyRow: { ...rowBetween, padding: 20 },
 });
 
 export default MenuDetailScreen;
