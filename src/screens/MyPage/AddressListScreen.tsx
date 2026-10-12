@@ -11,7 +11,7 @@ import { deleteAddress, getAddresses, setDefaultAddress } from '@apis/customerAp
 import { isOk } from '@apis/client';
 import { useDialog } from '@contexts/DialogContext';
 import { Badge, PrimaryButton, RadioIndicator, ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { screen, theme } from '@styles';
+import { nudgeUp, screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddressList'>;
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -109,8 +109,7 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Typography mode="subtitle2" color="gray900">
                     {item.label || '배송지'}
                   </Typography>
-                  {/* 상자 기준으로는 가운데지만 한글 글자가 줄 상자 안에서 살짝 위에 그려져 배지가 낮아 보인다. 1px 올린다 */}
-                  {item.isDefault && <Badge label="기본" tone="orange" style={styles.badge} />}
+                  {item.isDefault && <Badge label="기본" tone="orange" style={nudgeUp} />}
                 </View>
                 <Typography mode="body2" color="gray700">
                   {item.roadAddress}
@@ -123,18 +122,18 @@ const AddressListScreen: React.FC<Props> = ({ navigation, route }) => {
                 {!selectMode && (
                   <View style={styles.actions}>
                     {!item.isDefault && (
-                      <Pressable onPress={() => makeDefault(item)} hitSlop={6}>
+                      <Pressable onPress={() => makeDefault(item)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${item.label || '배송지'}를 기본으로 설정`}>
                         <Typography mode="caption1" color="orange700">
                           기본으로 설정
                         </Typography>
                       </Pressable>
                     )}
-                    <Pressable onPress={() => navigation.navigate('AddressEdit', { addressId: item.id })} hitSlop={6}>
+                    <Pressable onPress={() => navigation.navigate('AddressEdit', { addressId: item.id })} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${item.label || '배송지'} 수정`}>
                       <Typography mode="caption1" color="gray600">
                         수정
                       </Typography>
                     </Pressable>
-                    <Pressable onPress={() => remove(item)} hitSlop={6}>
+                    <Pressable onPress={() => remove(item)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${item.label || '배송지'} 삭제`}>
                       <Typography mode="caption1" color="red600">
                         삭제
                       </Typography>
@@ -175,7 +174,6 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingTop: screen.topCard, paddingBottom: 20, flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14 },
   radio: { marginTop: 1 },
-  badge: { transform: [{ translateY: -1 }] },
   labelIcon: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
   actions: { flexDirection: 'row', gap: 14, marginTop: 6 },
   sep: { height: 1, backgroundColor: theme.colors.gray100 },

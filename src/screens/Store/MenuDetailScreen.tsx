@@ -13,12 +13,12 @@ import { useDialog } from '@contexts/DialogContext';
 import { won } from '@utils/formatter';
 import { MenuOptionGroups, toCartItem, useMenuOptionSelection } from '@components/store';
 import { AdultBadge, Badge, BOTTOM_BTN_BOX_HEIGHT, BottomBtnBox, NavIconButton, QuantityStepper, ScreenWrapper, SkeletonList, Typography } from '@components/common';
-import { rowBaseline, rowBetween, screen, theme } from '@styles';
+import { nudgeUp, rowBaseline, rowBetween, screen, theme } from '@styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MenuDetail'>;
 
-/** 화면 맨 위에 떠 있는 바(뒤로 버튼)의 높이. 공통 Header 와 같은 56 */
-const HEADER_HEIGHT = 56;
+/** 화면 맨 위에 떠 있는 바(뒤로 버튼)의 높이. 공통 Header 와 같다 */
+const HEADER_HEIGHT = screen.headerHeight;
 /** 메뉴 이미지 높이. 가게 상세와 같은 공용 값 */
 const IMAGE_HEIGHT = screen.heroImage;
 
@@ -132,7 +132,7 @@ const MenuDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 {menu.name}
               </Typography>
               {/* 큰 제목(heading2) 옆이라 마크도 한 단계 크게 */}
-              {menu.adultOnly && <AdultBadge size={24} style={{ transform: [{ translateY: -1 }] }} />}
+              {menu.adultOnly && <AdultBadge size={24} style={nudgeUp} />}
               {soldOut && <Badge label="품절" tone="gray" size="medium" />}
             </View>
             {!!menu.description && (

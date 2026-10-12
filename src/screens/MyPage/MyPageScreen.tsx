@@ -24,6 +24,7 @@ const MenuRow: React.FC<{ icon: IconName; label: string; desc?: string; onPress:
 }) => (
   <Pressable
     onPress={onPress}
+    accessibilityRole="button"
     style={({ pressed }) => [styles.menuRow, pressed && { backgroundColor: theme.colors.gray50 }]}>
     <MaterialCommunityIcons name={icon} size={22} color={theme.colors.gray700} />
     <View style={{ flex: 1 }}>
@@ -64,7 +65,7 @@ const MyPageScreen = () => {
   return (
     <ScreenWrapper backgroundColor={theme.colors.bg} inTab>
       <ScrollView contentContainerStyle={styles.container}>
-        <Pressable onPress={() => navigation.navigate('ProfileEdit')} style={styles.profile}>
+        <Pressable onPress={() => navigation.navigate('ProfileEdit')} style={styles.profile} accessibilityRole="button" accessibilityLabel="내 정보 수정">
           <View style={styles.avatar}>
             <Typography mode="heading3" color="white">
               {me?.name?.slice(0, 1) ?? ''}
@@ -110,7 +111,7 @@ const MyPageScreen = () => {
           />
         </View>
 
-        <Pressable onPress={handleLogout} style={styles.logout}>
+        <Pressable onPress={handleLogout} style={styles.logout} accessibilityRole="button">
           <Typography mode="body2" color="gray500">
             로그아웃
           </Typography>

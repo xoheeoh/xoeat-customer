@@ -21,7 +21,7 @@ const StoreCard: React.FC<StoreCardProps> = ({ store, onPress, onToggleFavorite 
   const closed = !store.isOpenNow;
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}>
+    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}>
       <View style={styles.imageWrap}>
         {store.imageUrl ? (
           <Image source={{ uri: store.imageUrl }} style={styles.image} />
@@ -44,7 +44,7 @@ const StoreCard: React.FC<StoreCardProps> = ({ store, onPress, onToggleFavorite 
           <Typography mode="subtitle2" color={closed ? 'gray500' : 'gray900'} numberOfLines={1} style={{ flexShrink: 1 }}>
             {store.name}
           </Typography>
-          <Pressable onPress={onToggleFavorite} hitSlop={10}>
+          <Pressable onPress={onToggleFavorite} hitSlop={10} accessibilityRole="button" accessibilityLabel="찜" accessibilityState={{ selected: store.isFavorite }}>
             <MaterialCommunityIcons name={store.isFavorite ? 'heart' : 'heart-outline'} size={22} color={store.isFavorite ? theme.colors.primary : theme.colors.gray300} />
           </Pressable>
         </View>

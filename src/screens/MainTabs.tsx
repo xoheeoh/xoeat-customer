@@ -14,7 +14,7 @@ import MyPageScreen from './MyPage/MyPageScreen';
 const Tab = createBottomTabNavigator<MainTabParamList>();
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-/** 탭 바 높이와 탭 하나의 너비. 아이콘 24 + 간격 2 + 라벨(caption2 줄높이 14) = 40 이 세로 가운데 온다 (사장님 앱과 동일) */
+/** 탭 바 높이와 탭 하나의 너비. 아이콘 24 + 간격 2 + 라벨(caption2 줄높이 14) = 40 이 세로 가운데 온다 */
 const TAB_BAR_HEIGHT = 58;
 const TAB_ITEM_WIDTH = 72;
 
