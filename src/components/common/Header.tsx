@@ -36,6 +36,8 @@ const Header: React.FC<HeaderProps> = ({ bgColor, title, leftButton, leftEvent }
                 }
               : () => undefined
           }
+          accessibilityRole={leftButton ? 'button' : undefined}
+          accessibilityLabel={leftButton ? '뒤로' : undefined}
           style={({ pressed }) => [styles.button, pressed && leftButton && styles.pressed]}>
           {leftButton && <Icon source="chevron-left" size={26} color={theme.colors.gray900} />}
         </Pressable>

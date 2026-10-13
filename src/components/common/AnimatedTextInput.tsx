@@ -168,6 +168,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 14,
     paddingBottom: 10,
+    // 가로 배치(row) 안에서 남는 너비를 채우기 위한 값. TextField 가 row 상자로 감싸 준다.
+    // 세로 배치 안에 그대로 두면 flex 가 높이에 작용해 56 이 아니라 내용 크기만큼 늘어난다
     flex: 1,
   },
   label: {
