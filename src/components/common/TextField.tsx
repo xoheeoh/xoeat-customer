@@ -25,22 +25,25 @@ interface TextFieldProps {
 const TextField: React.FC<TextFieldProps> = ({ id, inputMode = 'text', label, value, onChangeText, placeholder, error, descMessage, secure = false, disabled, maxLength, editable, inputRef, onFocus }) => {
   return (
     <View>
-      <AnimatedTextInput
-        ref={inputRef}
-        id={id}
-        inputMode={inputMode}
-        placeholder={placeholder}
-        placeholderTextColor={theme.colors.gray300}
-        value={value}
-        setValue={onChangeText}
-        secureTextEntry={secure}
-        label={label}
-        error={error}
-        disabled={disabled}
-        maxLength={maxLength}
-        editable={editable}
-        onFocus={() => onFocus?.()}
-      />
+      {/* 입력칸은 반드시 가로 배치(row) 상자 안에 둔다. AnimatedTextInput 의 flex: 1 이 세로로 작용하면 높이가 56 을 넘겨 늘어난다 */}
+      <View style={styles.inputRow}>
+        <AnimatedTextInput
+          ref={inputRef}
+          id={id}
+          inputMode={inputMode}
+          placeholder={placeholder}
+          placeholderTextColor={theme.colors.gray300}
+          value={value}
+          setValue={onChangeText}
+          secureTextEntry={secure}
+          label={label}
+          error={error}
+          disabled={disabled}
+          maxLength={maxLength}
+          editable={editable}
+          onFocus={() => onFocus?.()}
+        />
+      </View>
 
       {/* 보여줘야 하는 오류 or 안내 메시지가 있는 경우 */}
       {descMessage && (
@@ -56,6 +59,7 @@ const TextField: React.FC<TextFieldProps> = ({ id, inputMode = 'text', label, va
 };
 
 const styles = StyleSheet.create({
+  inputRow: { flexDirection: 'row', alignItems: 'center' },
   alertMsg: {
     flexDirection: 'row',
     alignItems: 'center',
