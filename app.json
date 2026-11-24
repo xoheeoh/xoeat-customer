@@ -8,10 +8,16 @@
     "scheme": "xoeat",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "ios": { "bundleIdentifier": "app.xoeat.customer", "supportsTablet": false },
+    "ios": {
+      "bundleIdentifier": "app.xoeat.customer",
+      "supportsTablet": false
+    },
     "android": {
       "package": "app.xoeat.customer",
-      "adaptiveIcon": { "backgroundColor": "#FFFFFF", "foregroundImage": "./assets/images/android-icon-foreground.png" },
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -23,7 +29,20 @@
     "plugins": [
       "expo-secure-store",
       "expo-font",
-      ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 96 }]
-    ]
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 96
+        }
+      ]
+    ],
+    "owner": "xoheeoh",
+    "extra": {
+      "eas": {
+        "projectId": "0a62c801-cbea-4dff-93da-f584e45314b1"
+      }
+    }
   }
 }

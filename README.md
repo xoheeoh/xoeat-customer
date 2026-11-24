@@ -11,7 +11,7 @@
   <img src="docs/screenshots/order-detail.png" width="180" alt="주문 상태">
 </p>
 
-<!-- 배포 후 채우기: 웹 데모 URL -->
+<p align="center"><b>웹 데모</b> — <a href="https://xoeat-customer.expo.app">https://xoeat-customer.expo.app</a></p>
 
 사장님 앱 [xoeat-partner](https://github.com/xoheeoh/xoeat-partner) 와 **같은 Supabase 프로젝트**를 씁니다.
 이 앱에서 넣은 주문은 사장님 앱의 접수대기 목록에 알림음과 함께 바로 뜨고, 사장님이 수락·조리·배달 처리를 하면
